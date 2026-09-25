@@ -37,7 +37,8 @@ export async function createVault(password) {
     },
     magicCiphertext,
     magicIv,
-    projects: []
+    projects: [],
+    updatedAt: Date.now()
   };
 
   await saveVault(newVault);
@@ -50,30 +51,36 @@ export async function createVault(password) {
 
 /**
  * Unlocks an existing vault.
- * Priority: try to pull the latest from cloud first, fall back to local IndexedDB.
+ * Priority: compares local IndexedDB and cloud timestamps so offline edits are preserved.
  * Throws if password is wrong or no vault is found anywhere.
  */
 export async function unlockVault(password) {
-  let vault = null;
+  // 1. Always load local IndexedDB vault first
+  const localVault = await loadVault();
+  let vault = localVault;
 
-  // 1. Try to pull the freshest copy from the cloud (works online only)
+  // 2. Try to pull from cloud if user is logged in
   const user = getCurrentUser();
   if (user) {
     try {
       const cloudVault = await downloadVault(user.uid);
       if (cloudVault) {
-        vault = cloudVault;
-        // Keep local copy up to date
-        await saveVault(vault);
+        const localTime = localVault?.updatedAt || 0;
+        const cloudTime = cloudVault.updatedAt || 0;
+
+        if (!localVault || cloudTime > localTime) {
+          // Cloud copy is newer
+          vault = cloudVault;
+          await saveVault(vault);
+        } else if (localTime > cloudTime) {
+          // Local copy has newer offline edits — preserve local and upload to cloud
+          vault = localVault;
+          syncToCloud(vault).catch(() => {});
+        }
       }
     } catch {
-      // Cloud fetch failed — fall through to local
+      // Cloud fetch failed / offline — continue with local vault
     }
-  }
-
-  // 2. Fall back to local IndexedDB (works offline)
-  if (!vault) {
-    vault = await loadVault();
   }
 
   if (!vault) {
@@ -112,9 +119,12 @@ export function isUnlocked() {
 }
 
 /**
- * Checks if a vault exists locally in IndexedDB.
+ * Checks if a vault exists locally in IndexedDB or in cloud.
  */
 export async function hasVault() {
+  const localVault = await loadVault();
+  if (localVault) return true;
+
   const user = getCurrentUser();
   if (user) {
     try {
@@ -125,8 +135,7 @@ export async function hasVault() {
     }
   }
 
-  const vault = await loadVault();
-  return !!vault;
+  return false;
 }
 
 /**
@@ -156,14 +165,16 @@ function ensureUnlocked() {
 
 /**
  * Persists the current vault state to local IndexedDB AND queues a cloud sync.
- * Cloud sync is fire-and-forget — local save always happens first.
+ * Updates local timestamp so offline changes win over older cloud snapshots.
  */
 async function persist() {
+  if (currentVaultData) {
+    currentVaultData.updatedAt = Date.now();
+  }
   await saveVault(currentVaultData);
   // Fire-and-forget cloud sync (non-blocking)
   syncToCloud(currentVaultData).catch(() => {
-    // Silently ignored — Firestore SDK queues the write locally
-    // and retries automatically when connectivity is restored
+    // Silently ignored — will auto-sync when internet is restored
   });
 }
 
@@ -174,6 +185,15 @@ async function syncToCloud(vault) {
   const user = getCurrentUser();
   if (user) {
     await uploadVault(user.uid, vault || currentVaultData);
+  }
+}
+
+/**
+ * Manually trigger cloud sync for current vault state (e.g. when coming back online)
+ */
+export async function syncVaultToCloud() {
+  if (isUnlocked() && currentVaultData) {
+    await syncToCloud(currentVaultData);
   }
 }
 

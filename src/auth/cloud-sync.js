@@ -47,6 +47,7 @@ function serializeVault(vault) {
         contentIv: uint8ArrayToBase64(block.contentIv),
       })),
     })),
+    updatedAt: vault.updatedAt || Date.now(),
     lastModified: serverTimestamp(),
   };
 }
@@ -56,6 +57,11 @@ function serializeVault(vault) {
  * vault structure (with Uint8Arrays) for use in IndexedDB / vault.js.
  */
 function deserializeVault(data) {
+  let time = data.updatedAt;
+  if (!time && data.lastModified) {
+    time = typeof data.lastModified.toMillis === 'function' ? data.lastModified.toMillis() : data.lastModified;
+  }
+
   return {
     version: data.version,
     salt: base64ToUint8Array(data.salt),
@@ -74,6 +80,7 @@ function deserializeVault(data) {
         contentIv: base64ToUint8Array(block.contentIv),
       })),
     })),
+    updatedAt: time || 0
   };
 }
 

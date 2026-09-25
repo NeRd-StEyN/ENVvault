@@ -6,13 +6,12 @@ import ProjectView from './components/ProjectView.jsx';
 import EnvEditor from './components/EnvEditor.jsx';
 import Settings from './components/Settings.jsx';
 import SecurityAbout from './components/SecurityAbout.jsx';
-import { lockVault, isUnlocked } from './vault/vault.js';
+import { lockVault, isUnlocked, searchVault, syncVaultToCloud } from './vault/vault.js';
 import { onAuthState, signOutUser } from './auth/auth.js';
 import {
   Lock, Settings as SettingsIcon, Info, LogOut,
   Wifi, WifiOff, CloudOff, Cloud, Search, X
 } from 'lucide-react';
-import { searchVault } from './vault/vault.js';
 
 // ─── Top-level app states ────────────────────────────────────────────────────
 // 'loading' → checking Firebase auth state
@@ -56,6 +55,17 @@ function App() {
       }
     });
     return () => unsub();
+  }, []);
+
+  // ── Online reconnect auto-sync listener ──────────────────────────────────
+  useEffect(() => {
+    const handleOnline = () => {
+      if (isUnlocked()) {
+        syncVaultToCloud().catch(() => {});
+      }
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   // ── Auto-lock timer ───────────────────────────────────────────────────────
