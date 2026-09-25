@@ -1,36 +1,116 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { addEnvironmentBlock, updateEnvironmentBlock, deleteEnvironmentBlock, getEnvironmentBlocks } from '../vault/vault.js';
-import { ArrowLeft, Save, Copy, Download, Trash2, Check, Upload, Eye, EyeOff } from 'lucide-react';
+import ConfirmModal from './ConfirmModal.jsx';
+import { ArrowLeft, Save, Copy, Download, Trash2, Check, Upload, Eye, EyeOff, Plus } from 'lucide-react';
+
+const parseEnv = (str) => {
+  const lines = str.split('\n');
+  const parsed = [];
+  lines.forEach(line => {
+    if (!line.trim() || line.startsWith('#')) return;
+    const idx = line.indexOf('=');
+    if (idx > -1) {
+      let key = line.slice(0, idx).trim();
+      let value = line.slice(idx + 1).trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      parsed.push({ key, value });
+    }
+  });
+  return parsed;
+};
+
+const stringifyVars = (vars) => {
+  return vars
+    .filter(v => v.key.trim())
+    .map(v => {
+      const key = v.key.trim();
+      let val = v.value;
+      if (val.includes('\n') || val.includes(' ')) {
+        val = `"${val.replace(/"/g, '\\"')}"`;
+      }
+      return `${key}=${val}`;
+    })
+    .join('\n');
+};
 
 export default function EnvEditor({ projectId, projectName, initialBlock, onBack, onSaved }) {
   const isNew = !initialBlock;
   const [label, setLabel] = useState(initialBlock?.label || '');
-  const [content, setContent] = useState(initialBlock?.content || '');
+  
+  const [vars, setVars] = useState(() => {
+    if (initialBlock?.content) {
+      const parsed = parseEnv(initialBlock.content);
+      return parsed.length ? parsed : [{ key: '', value: '' }];
+    }
+    return [{ key: '', value: '' }];
+  });
+
   const [copied, setCopied] = useState(false);
-  const [copyTimer, setCopyTimer] = useState(0);
   const [saving, setSaving] = useState(false);
   const [masked, setMasked] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const fileInputRef = useRef(null);
-  const copyTimerRef = useRef(null);
 
-  // If this was opened from search, the content might be empty — load it
   useEffect(() => {
     if (initialBlock && !initialBlock.content) {
       getEnvironmentBlocks(projectId).then(blocks => {
         const block = blocks.find(b => b.id === initialBlock.id);
-        if (block) setContent(block.content);
+        if (block) {
+          const parsed = parseEnv(block.content);
+          setVars(parsed.length ? parsed : [{ key: '', value: '' }]);
+        }
       });
     }
   }, [initialBlock, projectId]);
 
+  const handleVarChange = (index, field, val) => {
+    const newVars = [...vars];
+    newVars[index][field] = val;
+    // Auto-add new row if the last row is being typed in
+    if (index === vars.length - 1 && (newVars[index].key || newVars[index].value)) {
+      newVars.push({ key: '', value: '' });
+    }
+    setVars(newVars);
+  };
+
+  const handlePaste = (e, index) => {
+    const pasted = e.clipboardData.getData('text');
+    if (pasted.includes('=')) {
+      e.preventDefault();
+      const parsed = parseEnv(pasted);
+      if (parsed.length > 0) {
+        const newVars = [...vars];
+        newVars.splice(index, 1, ...parsed);
+        // Ensure there is always an empty row at the end
+        if (newVars[newVars.length - 1].key || newVars[newVars.length - 1].value) {
+          newVars.push({ key: '', value: '' });
+        }
+        setVars(newVars);
+      }
+    }
+  };
+
+  const handleRemoveVar = (index) => {
+    if (vars.length === 1) {
+      setVars([{ key: '', value: '' }]);
+    } else {
+      const newVars = [...vars];
+      newVars.splice(index, 1);
+      setVars(newVars);
+    }
+  };
+
   const handleSave = async () => {
     if (!label.trim()) return;
     setSaving(true);
+    const finalContent = stringifyVars(vars);
     try {
       if (isNew) {
-        await addEnvironmentBlock(projectId, label, content);
+        await addEnvironmentBlock(projectId, label, finalContent);
       } else {
-        await updateEnvironmentBlock(projectId, initialBlock.id, label, content);
+        await updateEnvironmentBlock(projectId, initialBlock.id, label, finalContent);
       }
       onSaved();
     } catch (err) {
@@ -40,36 +120,16 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
     }
   };
 
-  // Secure copy: clipboard is automatically cleared after 30 seconds
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(content);
+      await navigator.clipboard.writeText(stringifyVars(vars));
       setCopied(true);
-      setCopyTimer(30);
-
-      // Countdown
-      clearInterval(copyTimerRef.current);
-      copyTimerRef.current = setInterval(() => {
-        setCopyTimer(prev => {
-          if (prev <= 1) {
-            clearInterval(copyTimerRef.current);
-            // Clear clipboard
-            navigator.clipboard.writeText('').catch(() => {});
-            setCopied(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch {
-      // clipboard write failed (e.g. browser permissions)
-    }
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
   };
 
-  useEffect(() => () => clearInterval(copyTimerRef.current), []);
-
   const handleDownload = () => {
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([stringifyVars(vars)], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -81,26 +141,23 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
   };
 
   const handleDelete = async () => {
-    if (window.confirm(`Delete "${label}"? This cannot be undone.`)) {
-      await deleteEnvironmentBlock(projectId, initialBlock.id);
-      onBack();
-    }
+    await deleteEnvironmentBlock(projectId, initialBlock.id);
+    setShowDeleteConfirm(false);
+    onBack();
   };
 
-  // Import .env file directly from disk
   const handleFileImport = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setContent(ev.target.result);
+      const parsed = parseEnv(ev.target.result);
+      setVars(parsed.length ? parsed : [{ key: '', value: '' }]);
       if (!label) setLabel(file.name);
     };
     reader.readAsText(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
-  const variableCount = content.split('\n').filter(line => line.trim() && !line.startsWith('#') && line.includes('=')).length;
 
   return (
     <div>
@@ -118,16 +175,8 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
         />
       </div>
 
-      <div style={{ position: 'relative' }}>
-        <textarea
-          className="env-editor"
-          placeholder={"DATABASE_URL=postgres://...\nAPI_KEY=sk-...\nSECRET_KEY=..."}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          spellCheck="false"
-          style={{ filter: masked ? 'blur(6px)' : 'none', transition: 'filter 0.2s' }}
-        />
-        <div style={{ position: 'absolute', bottom: '2rem', right: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <div style={{ position: 'relative', marginBottom: '2rem', padding: '1rem', background: 'var(--card-bg)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
           <button
             className="btn"
             style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
@@ -137,10 +186,46 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
             {masked ? <Eye size={13} /> : <EyeOff size={13} />}
             {masked ? 'Show' : 'Mask'}
           </button>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            {variableCount} variable{variableCount !== 1 ? 's' : ''}
-          </span>
         </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {vars.map((v, i) => (
+            <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="KEY"
+                value={v.key}
+                onChange={e => handleVarChange(i, 'key', e.target.value)}
+                onPaste={e => handlePaste(e, i)}
+                style={{ flex: 1, fontFamily: 'monospace', margin: 0 }}
+              />
+              <input
+                type={masked ? 'password' : 'text'}
+                placeholder="VALUE"
+                value={v.value}
+                onChange={e => handleVarChange(i, 'value', e.target.value)}
+                onPaste={e => handlePaste(e, i)}
+                style={{ flex: 2, fontFamily: 'monospace', margin: 0 }}
+              />
+              <button 
+                className="btn btn-danger" 
+                style={{ padding: '0.6rem', border: 'none', background: 'transparent', color: 'var(--text-secondary)' }} 
+                onClick={() => handleRemoveVar(i)} 
+                title="Remove variable"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        <button 
+          className="btn" 
+          style={{ marginTop: '1rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)', width: '100%', justifyContent: 'center' }} 
+          onClick={() => setVars([...vars, { key: '', value: '' }])}
+        >
+          <Plus size={16} /> Add Variable
+        </button>
       </div>
 
       <div className="flex-between">
@@ -152,9 +237,9 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
 
           {!isNew && (
             <>
-              <button className="btn" onClick={handleCopy} title="Copies to clipboard, auto-clears in 30s">
+              <button className="btn" onClick={handleCopy} title="Copy to clipboard">
                 {copied
-                  ? <><Check size={16} color="var(--success-color)" /> Copied ({copyTimer}s)</>
+                  ? <><Check size={16} color="var(--success-color)" /> Copied</>
                   : <><Copy size={16} /> Copy</>
                 }
               </button>
@@ -165,7 +250,6 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
             </>
           )}
 
-          {/* Import .env file from disk */}
           <button className="btn" onClick={() => fileInputRef.current?.click()} title="Import a .env file from disk">
             <Upload size={16} /> Import .env file
           </button>
@@ -173,16 +257,20 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
         </div>
 
         {!isNew && (
-          <button className="btn btn-danger" style={{ background: 'transparent', border: 'none' }} onClick={handleDelete}>
+          <button className="btn btn-danger" style={{ background: 'transparent', border: 'none' }} onClick={() => setShowDeleteConfirm(true)}>
             <Trash2 size={16} />
           </button>
         )}
       </div>
 
-      {copied && (
-        <div className="text-small text-muted" style={{ marginTop: '0.75rem' }}>
-          🔒 Clipboard will be automatically cleared in {copyTimer}s
-        </div>
+      {showDeleteConfirm && (
+        <ConfirmModal
+          title={`Delete "${label}"?`}
+          description="This action cannot be undone. This will permanently remove this environment file from your vault."
+          confirmText="Delete Environment"
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
       )}
     </div>
   );

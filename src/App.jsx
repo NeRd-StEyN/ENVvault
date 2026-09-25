@@ -24,7 +24,6 @@ import { searchVault } from './vault/vault.js';
 function App() {
   const [appState, setAppState] = useState('loading');
   const [firebaseUser, setFirebaseUser] = useState(null);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   // Navigation
   const [currentView, setCurrentView] = useState('dashboard');
@@ -38,17 +37,6 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // ── Network status indicator ──────────────────────────────────────────────
-  useEffect(() => {
-    const online = () => setIsOnline(true);
-    const offline = () => setIsOnline(false);
-    window.addEventListener('online', online);
-    window.addEventListener('offline', offline);
-    return () => {
-      window.removeEventListener('online', online);
-      window.removeEventListener('offline', offline);
-    };
-  }, []);
 
   // ── Firebase Auth state listener ──────────────────────────────────────────
   useEffect(() => {
@@ -263,14 +251,6 @@ function App() {
         </h1>
 
         <div className="flex-gap" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-          {/* Network + sync status */}
-          <div className={`status-badge ${isOnline ? 'status-online' : 'status-offline-bad'}`} title={isOnline ? 'Online — vault syncing to cloud' : 'Offline — working from local cache'}>
-            {isOnline
-              ? <><Cloud size={12} /> Synced</>
-              : <><CloudOff size={12} /> Offline</>
-            }
-          </div>
-
           {/* User email pill */}
           {firebaseUser && (
             <div className="status-badge" title={firebaseUser.email}>

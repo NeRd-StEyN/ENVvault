@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getEnvironmentBlocks, deleteProject } from '../vault/vault.js';
+import ConfirmModal from './ConfirmModal.jsx';
 import { ArrowLeft, FileText, Plus, Trash2 } from 'lucide-react';
 
 export default function ProjectView({ projectId, projectName, onBack, onSelectEnv, onNewEnv }) {
@@ -60,23 +61,20 @@ export default function ProjectView({ projectId, projectName, onBack, onSelectEn
       </div>
 
       <div style={{ marginTop: '3rem', borderTop: '1px solid var(--border-color)', paddingTop: '2rem' }}>
-        {confirmDelete ? (
-          <div className="card" style={{ borderColor: 'var(--error-color)' }}>
-            <h3 className="text-small" style={{ color: 'var(--error-color)', marginTop: 0 }}>Delete {projectName}?</h3>
-            <p className="text-small text-muted" style={{ marginBottom: '1rem' }}>
-              This will permanently remove {envBlocks.length} encrypted environment files from this device.
-            </p>
-            <div className="flex-gap">
-              <button className="btn btn-danger" onClick={handleDelete}>Confirm Delete</button>
-              <button className="btn" onClick={() => setConfirmDelete(false)}>Cancel</button>
-            </div>
-          </div>
-        ) : (
-          <button className="btn btn-danger" style={{ background: 'transparent', border: 'none' }} onClick={() => setConfirmDelete(true)}>
-            <Trash2 size={16} /> Delete Project
-          </button>
-        )}
+        <button className="btn btn-danger" style={{ background: 'transparent', border: 'none' }} onClick={() => setConfirmDelete(true)}>
+          <Trash2 size={16} /> Delete Project
+        </button>
       </div>
+
+      {confirmDelete && (
+        <ConfirmModal
+          title={`Delete ${projectName}?`}
+          description={`This will permanently remove ${envBlocks.length} encrypted environment files from this device.`}
+          confirmText="Delete Project"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   );
 }

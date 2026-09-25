@@ -30,12 +30,12 @@ import { getFirestore, initializeFirestore, persistentLocalCache, persistentMult
 
 // ─── FIREBASE CONFIG ─────────────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey: "AIzaSyA6C7lyO4B6UlRe8GncnAGMWicduuu-spY",
-  authDomain: "envvault-4af47.firebaseapp.com",
-  projectId: "envvault-4af47",
-  storageBucket: "envvault-4af47.firebasestorage.app",
-  messagingSenderId: "702783786776",
-  appId: "1:702783786776:web:22fed42d12fe67b46a186d"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
   // measurementId omitted — Analytics disabled intentionally (security app)
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,10 +49,10 @@ export const auth = getAuth(app);
 // This enables offline support — writes are queued locally and auto-synced on reconnect
 export const db = getApps().length <= 1
   ? initializeFirestore(app, {
-      cache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
-      })
+    cache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
     })
+  })
   : getFirestore(app);
 
 export default app;

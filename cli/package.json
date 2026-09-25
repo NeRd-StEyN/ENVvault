@@ -1,10 +1,10 @@
 {
-  "name": "cli",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@nerdsteyn/envvault-cli",
+  "version": "1.0.1",
+  "description": "Zero-knowledge CLI for pulling environment variables securely.",
   "main": "index.js",
   "bin": {
-    "envvault": "./index.js"
+    "envvault": "index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -2,15 +2,18 @@ const { initializeApp } = require('firebase/app');
 const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
+const dotenv = require('dotenv');
+
+dotenv.config();
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA6C7lyO4B6UlRe8GncnAGMWicduuu-spY",
-  authDomain: "envvault-4af47.firebaseapp.com",
-  projectId: "envvault-4af47",
-  storageBucket: "envvault-4af47.firebasestorage.app",
-  messagingSenderId: "702783786776",
-  appId: "1:702783786776:web:22fed42d12fe67b46a186d"
+  apiKey: process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -23,12 +26,12 @@ async function test() {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
     const token = await userCredential.user.getIdToken();
-    
+
     console.log("Fetching vault via REST...");
     const res = await fetch(`https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/vaults/${uid}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    
+
     const data = await res.json();
     console.log("Status:", res.status);
     console.log("Data keys:", Object.keys(data));
