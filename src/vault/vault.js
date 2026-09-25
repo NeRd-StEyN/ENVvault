@@ -115,6 +115,16 @@ export function isUnlocked() {
  * Checks if a vault exists locally in IndexedDB.
  */
 export async function hasVault() {
+  const user = getCurrentUser();
+  if (user) {
+    try {
+      const cloudVault = await downloadVault(user.uid);
+      if (cloudVault) return true;
+    } catch (err) {
+      console.warn("Could not check cloud vault:", err);
+    }
+  }
+
   const vault = await loadVault();
   return !!vault;
 }

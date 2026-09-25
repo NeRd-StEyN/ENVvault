@@ -2,15 +2,27 @@
 
 const { Command } = require('commander');
 const inquirer = require('inquirer').default || require('inquirer');
-const Conf = require('conf');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { initializeApp } = require('firebase/app');
 const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
 const { getFirestore, doc, getDoc, setDoc } = require('firebase/firestore');
 const { deriveKey, decryptData, encryptData } = require('./crypto.js');
 
-const config = new Conf({ projectName: 'envvault-cli' });
+const configPath = path.join(os.homedir(), '.envvault-cli.json');
+const config = {
+  get: (key) => {
+    try { return JSON.parse(fs.readFileSync(configPath, 'utf8'))[key]; } catch { return null; }
+  },
+  set: (key, value) => {
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch {}
+    data[key] = value;
+    fs.writeFileSync(configPath, JSON.stringify(data), 'utf8');
+  }
+};
+
 const program = new Command();
 
 // --- FIREBASE SETUP ---
@@ -98,8 +110,19 @@ program
   .action(async (projectName, envLabel, options) => {
     const creds = getCredentials();
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, creds.email, creds.password);
-      const vaultData = await fetchVault(userCredential.user.uid);
+      await signInWithEmailAndPassword(auth, creds.email, creds.password);
+      
+      // Node.js Firebase SDK race condition fix: wait for auth state to propagate to Firestore
+      const user = await new Promise((resolve) => {
+        const unsubscribe = auth.onAuthStateChanged((u) => {
+          if (u) {
+            unsubscribe();
+            resolve(u);
+          }
+        });
+      });
+
+      const vaultData = await fetchVault(user.uid);
       const masterPassword = await promptMasterPassword();
       
       const { vault } = await unlockVault(vaultData, masterPassword);
