@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  envPrefix: ['VITE_', 'FIREBASE_', 'APP_'],
   plugins: [
     react(),
     VitePWA({
