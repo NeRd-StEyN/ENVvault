@@ -48,6 +48,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
   });
 
   const [copied, setCopied] = useState(false);
+  const [copiedRow, setCopiedRow] = useState(null);
   const [saving, setSaving] = useState(false);
   const [masked, setMasked] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -125,6 +126,14 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
       await navigator.clipboard.writeText(stringifyVars(vars));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  const handleCopyValue = async (index) => {
+    try {
+      await navigator.clipboard.writeText(vars[index].value);
+      setCopiedRow(index);
+      setTimeout(() => setCopiedRow(null), 2000);
     } catch {}
   };
 
@@ -207,6 +216,14 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
                 onPaste={e => handlePaste(e, i)}
                 style={{ flex: 2, fontFamily: 'monospace', margin: 0 }}
               />
+              <button
+                className="btn"
+                style={{ padding: '0.6rem', border: 'none', background: 'transparent', color: copiedRow === i ? 'var(--success-color)' : 'var(--text-secondary)', transition: 'color 0.2s' }}
+                onClick={() => handleCopyValue(i)}
+                title="Copy value"
+              >
+                {copiedRow === i ? <Check size={16} /> : <Copy size={16} />}
+              </button>
               <button 
                 className="btn btn-danger" 
                 style={{ padding: '0.6rem', border: 'none', background: 'transparent', color: 'var(--text-secondary)' }} 
