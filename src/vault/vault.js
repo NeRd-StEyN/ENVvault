@@ -163,6 +163,22 @@ function ensureUnlocked() {
   if (!isUnlocked()) throw new Error('Vault is locked.');
 }
 
+const vaultChangeListeners = new Set();
+
+/**
+ * Register a listener that fires whenever the in-memory vault updates (e.g. from cloud or local edit)
+ */
+export function onVaultChange(fn) {
+  vaultChangeListeners.add(fn);
+  return () => vaultChangeListeners.delete(fn);
+}
+
+function notifyVaultChange() {
+  vaultChangeListeners.forEach(fn => {
+    try { fn(); } catch (err) { console.error("Vault listener error:", err); }
+  });
+}
+
 /**
  * Persists the current vault state to local IndexedDB AND queues a cloud sync.
  * Updates local timestamp so offline changes win over older cloud snapshots.
@@ -172,6 +188,7 @@ async function persist() {
     currentVaultData.updatedAt = Date.now();
   }
   await saveVault(currentVaultData);
+  notifyVaultChange();
   // Fire-and-forget cloud sync (non-blocking)
   syncToCloud(currentVaultData).catch(() => {
     // Silently ignored — will auto-sync when internet is restored
@@ -185,6 +202,20 @@ async function syncToCloud(vault) {
   const user = getCurrentUser();
   if (user) {
     await uploadVault(user.uid, vault || currentVaultData);
+  }
+}
+
+/**
+ * Applies a real-time cloud vault update if the incoming cloud vault is newer.
+ */
+export async function applyCloudVaultUpdate(cloudVault) {
+  if (!isUnlocked() || !cloudVault) return;
+  const localTime = currentVaultData?.updatedAt || 0;
+  const cloudTime = cloudVault.updatedAt || 0;
+  if (cloudTime > localTime) {
+    currentVaultData = cloudVault;
+    await saveVault(cloudVault);
+    notifyVaultChange();
   }
 }
 

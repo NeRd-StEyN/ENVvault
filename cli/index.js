@@ -69,6 +69,11 @@ function uint8ArrayToBase64(buffer) {
 }
 
 function deserializeVault(data) {
+  let time = data.updatedAt;
+  if (!time && data.lastModified) {
+    time = typeof data.lastModified.toMillis === 'function' ? data.lastModified.toMillis() : (new Date(data.lastModified).getTime() || 0);
+  }
+
   return {
     version: data.version,
     salt: base64ToUint8Array(data.salt),
@@ -87,6 +92,7 @@ function deserializeVault(data) {
         contentIv: base64ToUint8Array(block.contentIv),
       })),
     })),
+    updatedAt: time || 0
   };
 }
 
@@ -109,6 +115,7 @@ function serializeVault(vault) {
         contentIv: uint8ArrayToBase64(block.contentIv),
       })),
     })),
+    updatedAt: Date.now()
   };
 }
 

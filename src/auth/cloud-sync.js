@@ -20,7 +20,7 @@
  *   }
  */
 
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
 import { uint8ArrayToBase64, base64ToUint8Array } from '../utils/base64.js';
 
@@ -121,4 +121,20 @@ export async function downloadVault(userId) {
     }
     throw err;
   }
+}
+
+/**
+ * Subscribes to real-time changes of the encrypted vault document in Firestore.
+ * Automatically notifies when edits are pushed from the CLI or another browser tab.
+ */
+export function subscribeToVault(userId, onUpdate) {
+  if (!userId) return () => {};
+  const ref = doc(db, 'vaults', userId);
+  return onSnapshot(ref, (snap) => {
+    if (snap.exists() && !snap.metadata.hasPendingWrites) {
+      onUpdate(deserializeVault(snap.data()));
+    }
+  }, (err) => {
+    console.warn("Cloud sync listener error:", err.message);
+  });
 }

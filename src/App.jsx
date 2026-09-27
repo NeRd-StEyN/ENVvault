@@ -7,7 +7,8 @@ import EnvEditor from './components/EnvEditor.jsx';
 import Settings from './components/Settings.jsx';
 import SecurityAbout from './components/SecurityAbout.jsx';
 import CliDocs from './components/CliDocs.jsx';
-import { lockVault, isUnlocked, searchVault, syncVaultToCloud } from './vault/vault.js';
+import { lockVault, isUnlocked, searchVault, syncVaultToCloud, applyCloudVaultUpdate } from './vault/vault.js';
+import { subscribeToVault } from './auth/cloud-sync.js';
 import { onAuthState, signOutUser } from './auth/auth.js';
 import {
   Shield, Lock, Settings as SettingsIcon, Info, LogOut,
@@ -66,6 +67,16 @@ function App() {
     });
     return () => unsub();
   }, []);
+
+  // ── Real-time Cloud Sync Listener (Live updates from CLI or other tabs) ───
+  useEffect(() => {
+    if (appState === 'unlocked' && firebaseUser?.uid) {
+      const unsubscribe = subscribeToVault(firebaseUser.uid, (incomingCloudVault) => {
+        applyCloudVaultUpdate(incomingCloudVault).catch(() => {});
+      });
+      return () => unsubscribe();
+    }
+  }, [appState, firebaseUser?.uid]);
 
   // ── Auto-lock timer (Touch, Mouse, Keyboard & Tab Visibility Aware) ───────
   useEffect(() => {

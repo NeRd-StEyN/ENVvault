@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getProjects, createProject } from '../vault/vault.js';
+import { getProjects, createProject, onVaultChange } from '../vault/vault.js';
 import {
   Folder, Plus, Shield, Key, Database, Cpu, Search,
   ArrowUpRight, Layers, FileCode, Terminal, Check, HardDrive
@@ -22,6 +22,8 @@ export default function Dashboard({ onProjectSelect }) {
 
   useEffect(() => {
     loadProjects();
+    const unsub = onVaultChange(loadProjects);
+    return () => unsub();
   }, []);
 
   const loadProjects = async () => {

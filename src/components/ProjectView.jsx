@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getEnvironmentBlocks, deleteProject } from '../vault/vault.js';
+import { getEnvironmentBlocks, deleteProject, onVaultChange } from '../vault/vault.js';
 import ConfirmModal from './ConfirmModal.jsx';
 import {
-  ArrowLeft, FileCode, Plus, Trash2, Terminal, Copy,
+  ArrowLeft, FileCode, Plus, Trash2,
   Check, ArrowRight, ShieldCheck, KeyRound, AlertTriangle
 } from 'lucide-react';
 
@@ -20,6 +20,8 @@ export default function ProjectView({ projectId, projectName, onBack, onSelectEn
 
   useEffect(() => {
     loadEnvs();
+    const unsub = onVaultChange(loadEnvs);
+    return () => unsub();
   }, [projectId]);
 
   const loadEnvs = async () => {
