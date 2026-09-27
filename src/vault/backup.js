@@ -1,5 +1,7 @@
 import { loadVault, saveVault } from '../storage/indexeddb.js';
 import { uint8ArrayToBase64, base64ToUint8Array } from '../utils/base64.js';
+import { uploadVault } from '../auth/cloud-sync.js';
+import { getCurrentUser } from '../auth/auth.js';
 
 /**
  * Exports the currently stored vault from IndexedDB to a JSON string.
@@ -28,7 +30,8 @@ export async function exportBackup() {
         contentCiphertext: uint8ArrayToBase64(block.contentCiphertext),
         contentIv: uint8ArrayToBase64(block.contentIv)
       }))
-    }))
+    })),
+    updatedAt: vault.updatedAt || Date.now()
   };
 
   return JSON.stringify(backup, null, 2);
@@ -56,19 +59,30 @@ export async function importBackup(jsonString) {
     kdfParams: backup.kdfParams,
     magicCiphertext: base64ToUint8Array(backup.magicCiphertext),
     magicIv: base64ToUint8Array(backup.magicIv),
-    projects: backup.projects.map(proj => ({
+    projects: (backup.projects || []).map(proj => ({
       id: proj.id,
       nameCiphertext: base64ToUint8Array(proj.nameCiphertext),
       nameIv: base64ToUint8Array(proj.nameIv),
-      envBlocks: proj.envBlocks.map(block => ({
+      envBlocks: (proj.envBlocks || []).map(block => ({
         id: block.id,
         labelCiphertext: base64ToUint8Array(block.labelCiphertext),
         labelIv: base64ToUint8Array(block.labelIv),
         contentCiphertext: base64ToUint8Array(block.contentCiphertext),
         contentIv: base64ToUint8Array(block.contentIv)
       }))
-    }))
+    })),
+    updatedAt: Date.now()
   };
 
   await saveVault(vault);
+
+  // Sync to cloud if user is currently logged in
+  const user = getCurrentUser();
+  if (user) {
+    try {
+      await uploadVault(user.uid, vault);
+    } catch {
+      // offline or network error, will sync automatically when back online
+    }
+  }
 }

@@ -395,9 +395,21 @@ export async function searchVault(query) {
 
   for (const proj of currentVaultData.projects) {
     const projName = await decryptData(proj.nameCiphertext, proj.nameIv, currentKey);
-    for (const block of proj.envBlocks) {
+    const projMatches = projName.toLowerCase().includes(q);
+
+    // If the project name matches and it has no env blocks, still surface the project
+    if (projMatches && (!proj.envBlocks || proj.envBlocks.length === 0)) {
+      results.push({
+        projectId: proj.id,
+        projectName: projName,
+        blockId: null,
+        label: '(Open Project)',
+      });
+    }
+
+    for (const block of (proj.envBlocks || [])) {
       const label = await decryptData(block.labelCiphertext, block.labelIv, currentKey);
-      if (projName.toLowerCase().includes(q) || label.toLowerCase().includes(q)) {
+      if (projMatches || label.toLowerCase().includes(q)) {
         results.push({
           projectId: proj.id,
           projectName: projName,

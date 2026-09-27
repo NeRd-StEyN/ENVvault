@@ -162,8 +162,13 @@ function App() {
   const openSearchResult = (result) => {
     setActiveProjectId(result.projectId);
     setActiveProjectName(result.projectName);
-    setActiveEnvBlock({ id: result.blockId, label: result.label, content: '' });
-    setCurrentView('env-editor');
+    if (result.blockId) {
+      setActiveEnvBlock({ id: result.blockId, label: result.label, content: '' });
+      setCurrentView('env-editor');
+    } else {
+      setActiveEnvBlock(null);
+      setCurrentView('project');
+    }
     setSearchOpen(false);
     setSearchQuery('');
     setSearchResults([]);
@@ -284,7 +289,7 @@ function App() {
                 )}
                 {!searchLoading && searchResults.map(r => (
                   <div
-                    key={r.blockId}
+                    key={r.blockId || r.projectId}
                     className="card-interactive"
                     onClick={() => openSearchResult(r)}
                     style={{
