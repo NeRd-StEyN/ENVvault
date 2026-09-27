@@ -31,6 +31,26 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  // ── Handlers (Defined before useEffects to prevent TDZ errors) ───────────
+  const handleAuthenticated = useCallback(() => setAppState('locked'), []);
+
+  const handleUnlocked = useCallback(() => {
+    setAppState('unlocked');
+    setCurrentView('dashboard');
+  }, []);
+
+  const handleLock = useCallback((broadcast = true) => {
+    lockVault(broadcast);
+    setAppState('locked');
+    setActiveProjectId(null);
+    setActiveEnvBlock(null);
+    setSearchOpen(false);
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    lockVault();
+    await signOutUser();
+  }, []);
 
   // ── Network listener ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -210,27 +230,6 @@ function App() {
     setSearchOpen(false);
     setSearchQuery('');
     setSearchResults([]);
-  };
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleAuthenticated = () => setAppState('locked');
-
-  const handleUnlocked = () => {
-    setAppState('unlocked');
-    setCurrentView('dashboard');
-  };
-
-  const handleLock = useCallback((broadcast = true) => {
-    lockVault(broadcast);
-    setAppState('locked');
-    setActiveProjectId(null);
-    setActiveEnvBlock(null);
-    setSearchOpen(false);
-  }, []);
-
-  const handleSignOut = async () => {
-    lockVault();
-    await signOutUser();
   };
 
   // ─────────────────────────────────────────────────────────────────────────
