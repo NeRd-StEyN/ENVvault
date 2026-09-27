@@ -35,7 +35,7 @@ function App() {
     const handleOnline = () => {
       setIsOnline(true);
       if (isUnlocked()) {
-        syncVaultToCloud().catch(() => {});
+        syncVaultToCloud().catch(() => { });
       }
     };
     const handleOffline = () => setIsOnline(false);
@@ -92,25 +92,10 @@ function App() {
     };
   }, [appState]);
 
-  // ── Theme listener ────────────────────────────────────────────────────────
+  // ── Permanent Theme (Dark Gunmetal Hardware Vault) ────────────────────────
   useEffect(() => {
-    const applyTheme = () => {
-      const theme = localStorage.getItem('envvault_theme') || 'system';
-      if (theme === 'light') {
-        document.body.classList.add('light-theme');
-      } else if (theme === 'dark') {
-        document.body.classList.remove('light-theme');
-      } else {
-        if (window.matchMedia?.('(prefers-color-scheme: light)').matches) {
-          document.body.classList.add('light-theme');
-        } else {
-          document.body.classList.remove('light-theme');
-        }
-      }
-    };
-    applyTheme();
-    window.addEventListener('theme_changed', applyTheme);
-    return () => window.removeEventListener('theme_changed', applyTheme);
+    localStorage.removeItem('envvault_theme');
+    document.body.classList.remove('light-theme');
   }, []);
 
   // ── Keyboard shortcut: Ctrl+K / Cmd+K ─────────────────────────────────────

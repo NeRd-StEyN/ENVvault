@@ -261,7 +261,7 @@ export default function Dashboard({ onProjectSelect }) {
               </div>
 
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', wordBreak: 'break-word' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)', wordBreak: 'break-word' }}>
                   {proj.name}
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>

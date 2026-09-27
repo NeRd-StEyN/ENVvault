@@ -5,52 +5,52 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* True Neutral Charcoal & Matte Cast-Iron Graphite (Zero Blue Tint) */
-  --chassis-dark:     #111113;
-  --chassis-base:     #161619;
-  --chassis-mid:      #1f1f23;
-  --chassis-light:    #28282d;
-  --chassis-highlight:#3a3a42;
+  --chassis-dark: #111113;
+  --chassis-base: #161619;
+  --chassis-mid: #1f1f23;
+  --chassis-light: #28282d;
+  --chassis-highlight: #3a3a42;
 
   /* Inset & Recessed Panels */
-  --inset-dark:       #0a0a0c;
-  --inset-surface:    #121215;
+  --inset-dark: #0a0a0c;
+  --inset-surface: #121215;
 
   /* Physical Metallic Gradients (Machined Cast-Iron Gunmetal) */
-  --metal-plate:      linear-gradient(180deg, #26262b 0%, #1c1c20 50%, #141417 100%);
-  --metal-plate-hover:linear-gradient(180deg, #2e2e34 0%, #232328 50%, #19191d 100%);
-  --metal-chassis:    linear-gradient(180deg, #222227 0%, #131316 100%);
-  --metal-bezel:      linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 100%);
-  --metal-recess:     linear-gradient(180deg, #09090b 0%, #121215 100%);
+  --metal-plate: linear-gradient(180deg, #26262b 0%, #1c1c20 50%, #141417 100%);
+  --metal-plate-hover: linear-gradient(180deg, #2e2e34 0%, #232328 50%, #19191d 100%);
+  --metal-chassis: linear-gradient(180deg, #222227 0%, #131316 100%);
+  --metal-bezel: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --metal-recess: linear-gradient(180deg, #09090b 0%, #121215 100%);
 
   /* Primary Industrial Amber & Gold Accents */
-  --amber-core:       #f59e0b;
-  --amber-glow:       #fbbf24;
-  --amber-button:     linear-gradient(180deg, #f59e0b 0%, #d97706 60%, #b45309 100%);
-  --amber-button-down:linear-gradient(180deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+  --amber-core: #f59e0b;
+  --amber-glow: #fbbf24;
+  --amber-button: linear-gradient(180deg, #f59e0b 0%, #d97706 60%, #b45309 100%);
+  --amber-button-down: linear-gradient(180deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
 
   /* Realistic LED Diodes */
-  --led-green:        #10b981;
-  --led-green-glow:   0 0 10px #10b981, 0 0 20px rgba(16, 185, 129, 0.6);
-  --led-amber:        #f59e0b;
-  --led-amber-glow:   0 0 10px #f59e0b, 0 0 20px rgba(245, 158, 11, 0.6);
-  --led-red:          #ef4444;
-  --led-red-glow:     0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.6);
+  --led-green: #10b981;
+  --led-green-glow: 0 0 10px #10b981, 0 0 20px rgba(16, 185, 129, 0.6);
+  --led-amber: #f59e0b;
+  --led-amber-glow: 0 0 10px #f59e0b, 0 0 20px rgba(245, 158, 11, 0.6);
+  --led-red: #ef4444;
+  --led-red-glow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.6);
 
   /* Engraved / Embossed Text Shadows */
-  --text-engraved:    0 -1px 0 rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.08);
-  --text-embossed:    0 1px 2px rgba(0, 0, 0, 0.9);
+  --text-engraved: 0 -1px 0 rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.08);
+  --text-embossed: 0 1px 2px rgba(0, 0, 0, 0.9);
 
   /* 3D Shadows & Insets */
-  --shadow-plate:     0 12px 32px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 -1px 0 rgba(0, 0, 0, 0.8) inset;
-  --shadow-recessed:  inset 0 3px 6px rgba(0, 0, 0, 0.9), inset 0 0 1px rgba(0, 0, 0, 0.95), 0 1px 0 rgba(255, 255, 255, 0.06);
-  --shadow-button-3d: 0 4px 6px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.16) inset, 0 -1px 0 rgba(0,0,0,0.8) inset;
+  --shadow-plate: 0 12px 32px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 -1px 0 rgba(0, 0, 0, 0.8) inset;
+  --shadow-recessed: inset 0 3px 6px rgba(0, 0, 0, 0.9), inset 0 0 1px rgba(0, 0, 0, 0.95), 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-button-3d: 0 4px 6px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 -1px 0 rgba(0, 0, 0, 0.8) inset;
 
   /* Typography */
-  --text-primary:     #f4f4f5;
-  --text-secondary:   #a1a1aa;
-  --text-tertiary:    #71717a;
-  --text-muted:       #52525b;
-  --text-lcd:         #fbbf24;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+  --text-lcd: #fbbf24;
 
   /* Geometry & Fonts */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -62,44 +62,46 @@
   --radius-full: 9999px;
 
   /* Legacy Bindings */
-  --bg-color:       var(--chassis-dark);
-  --bg-color-alt:   var(--chassis-mid);
-  --border-color:   rgba(255, 255, 255, 0.08);
-  --accent-color:   var(--amber-core);
-  --error-color:    var(--led-red);
-  --success-color:  var(--led-green);
+  --bg-color: var(--chassis-dark);
+  --bg-color-alt: var(--chassis-mid);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-color: var(--amber-core);
+  --error-color: var(--led-red);
+  --success-color: var(--led-green);
 }
 
 /* Light Theme: Brushed Laboratory Stainless Steel & Off-White */
 body.light-theme {
-  --chassis-dark:     #d4d4d8;
-  --chassis-base:     #e4e4e7;
-  --chassis-mid:      #f4f4f5;
-  --chassis-light:    #ffffff;
-  --inset-dark:       #cbd2df;
-  --inset-surface:    #d5dbe6;
+  --chassis-dark: #d4d4d8;
+  --chassis-base: #e4e4e7;
+  --chassis-mid: #f4f4f5;
+  --chassis-light: #ffffff;
+  --inset-dark: #cbd2df;
+  --inset-surface: #d5dbe6;
 
-  --metal-plate:      linear-gradient(180deg, #ffffff 0%, #f4f4f5 50%, #e4e4e7 100%);
-  --metal-plate-hover:linear-gradient(180deg, #ffffff 0%, #f9f9fa 50%, #ececed 100%);
-  --metal-recess:     linear-gradient(180deg, #c4c4c8 0%, #dcdce0 100%);
+  --metal-plate: linear-gradient(180deg, #ffffff 0%, #f4f4f5 50%, #e4e4e7 100%);
+  --metal-plate-hover: linear-gradient(180deg, #ffffff 0%, #f9f9fa 50%, #ececed 100%);
+  --metal-recess: linear-gradient(180deg, #c4c4c8 0%, #dcdce0 100%);
 
-  --shadow-plate:     0 8px 24px rgba(0, 0, 0, 0.15), 0 1px 0 #ffffff inset, 0 -1px 0 rgba(0,0,0,0.1) inset;
-  --shadow-recessed:  inset 0 3px 6px rgba(0, 0, 0, 0.22), 0 1px 0 #ffffff;
-  --shadow-button-3d: 0 3px 5px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.8) inset;
+  --shadow-plate: 0 8px 24px rgba(0, 0, 0, 0.15), 0 1px 0 #ffffff inset, 0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+  --shadow-recessed: inset 0 3px 6px rgba(0, 0, 0, 0.22), 0 1px 0 #ffffff;
+  --shadow-button-3d: 0 3px 5px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
 
-  --text-primary:     #18181b;
-  --text-secondary:   #52525b;
-  --text-tertiary:    #71717a;
-  --text-muted:       #a1a1aa;
-  --text-lcd:         #d97706;
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-tertiary: #71717a;
+  --text-muted: #a1a1aa;
+  --text-lcd: #d97706;
 
-  --text-engraved:    0 1px 0 #ffffff;
+  --text-engraved: 0 1px 0 #ffffff;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    GLOBAL RESET & HARDWARE TEXTURES
    ═══════════════════════════════════════════════════════════════════════════ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -128,7 +130,10 @@ body {
 }
 
 /* Hardware Industrial Typography */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -136,10 +141,21 @@ h1, h2, h3, h4 {
   line-height: 1.25;
 }
 
-h1 { font-size: 1.85rem; }
-h2 { font-size: 1.45rem; }
-h3 { font-size: 1.15rem; }
-h4 { font-size: 0.95rem; }
+h1 {
+  font-size: 1.85rem;
+}
+
+h2 {
+  font-size: 1.45rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+}
+
+h4 {
+  font-size: 0.95rem;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LAYOUT CONTAINER
@@ -182,7 +198,9 @@ h4 { font-size: 0.95rem; }
 .card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent 5%, rgba(255, 255, 255, 0.18) 50%, transparent 95%);
 }
@@ -197,7 +215,7 @@ h4 { font-size: 0.95rem; }
   height: 10px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #52525b 0%, #27272a 70%, #121214 100%);
-  box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 1px 2px rgba(0,0,0,0.8);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.8);
   position: absolute;
   pointer-events: none;
 }
@@ -205,17 +223,34 @@ h4 { font-size: 0.95rem; }
 .plate-screw::after {
   content: '';
   position: absolute;
-  top: 50%; left: 2px; right: 2px;
+  top: 50%;
+  left: 2px;
+  right: 2px;
   height: 1px;
   background: rgba(0, 0, 0, 0.85);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
   transform: rotate(45deg);
 }
 
-.plate-screw.top-left  { top: 8px; left: 8px; }
-.plate-screw.top-right { top: 8px; right: 8px; }
-.plate-screw.bottom-left { bottom: 8px; left: 8px; }
-.plate-screw.bottom-right { bottom: 8px; right: 8px; }
+.plate-screw.top-left {
+  top: 8px;
+  left: 8px;
+}
+
+.plate-screw.top-right {
+  top: 8px;
+  right: 8px;
+}
+
+.plate-screw.bottom-left {
+  bottom: 8px;
+  left: 8px;
+}
+
+.plate-screw.bottom-right {
+  bottom: 8px;
+  right: 8px;
+}
 
 /* Interactive Metal Card */
 .card-interactive {
@@ -226,7 +261,7 @@ h4 { font-size: 0.95rem; }
   background: var(--metal-plate-hover);
   border-color: rgba(245, 158, 11, 0.35);
   transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(0,0,0,0.85), 0 1px 0 rgba(255,255,255,0.18) inset;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
 }
 
 .card-interactive:active {
@@ -260,8 +295,10 @@ h4 { font-size: 0.95rem; }
 .led-diode::after {
   content: '';
   position: absolute;
-  top: 1px; left: 2px;
-  width: 3px; height: 3px;
+  top: 1px;
+  left: 2px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.85);
 }
@@ -310,7 +347,7 @@ h4 { font-size: 0.95rem; }
   border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 6px 10px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.2) inset;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 .btn:active {
@@ -463,8 +500,13 @@ input::placeholder {
 }
 
 @keyframes dialRotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .vault-tumbler-hub {
@@ -473,7 +515,7 @@ input::placeholder {
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #f59e0b 0%, #b45309 60%, #451a03 100%);
   border: 2px solid #78350f;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.6);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -505,14 +547,16 @@ input::placeholder {
   border: 1px solid rgba(255, 255, 255, 0.12);
   position: relative;
   transition: all 0.15s ease;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .switch-lever::after {
   content: '';
   position: absolute;
-  top: 1px; left: 1px;
-  width: 12px; height: 12px;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: linear-gradient(180deg, #71717a 0%, #3f3f46 100%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.6);
@@ -555,7 +599,9 @@ input::placeholder {
 .telemetry-card::before {
   content: '';
   position: absolute;
-  top: 4px; left: 4px; right: 4px;
+  top: 4px;
+  left: 4px;
+  right: 4px;
   height: 1px;
   background: rgba(255, 255, 255, 0.03);
 }
@@ -686,13 +732,11 @@ input::placeholder {
    CAUTION & DANGER HAZARD STRIPES
    ═══════════════════════════════════════════════════════════════════════════ */
 .hazard-stripes {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(239, 68, 68, 0.15),
-    rgba(239, 68, 68, 0.15) 12px,
-    rgba(17, 17, 19, 0.4) 12px,
-    rgba(17, 17, 19, 0.4) 24px
-  );
+  background-image: repeating-linear-gradient(-45deg,
+      rgba(239, 68, 68, 0.15),
+      rgba(239, 68, 68, 0.15) 12px,
+      rgba(17, 17, 19, 0.4) 12px,
+      rgba(17, 17, 19, 0.4) 24px);
   border: 1px solid rgba(239, 68, 68, 0.4);
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
 }
@@ -700,16 +744,42 @@ input::placeholder {
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILITY & FLEX SHORTCUTS
    ═══════════════════════════════════════════════════════════════════════════ */
-.flex-between { display: flex; justify-content: space-between; align-items: center; }
-.flex-gap { display: flex; gap: 0.75rem; align-items: center; }
-.text-muted { color: var(--text-secondary); }
-.text-small { font-size: 0.82rem; }
-.text-mono { font-family: var(--font-mono); }
-.spin { animation: spin 0.85s linear infinite; }
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-gap {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.text-muted {
+  color: var(--text-secondary);
+}
+
+.text-small {
+  font-size: 0.82rem;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+}
+
+.spin {
+  animation: spin 0.85s linear infinite;
+}
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-text {
@@ -741,14 +811,34 @@ kbd {
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-  .app-container { padding: 1rem 0.85rem; }
-  .telemetry-grid { grid-template-columns: 1fr 1fr; }
-  .env-table-header { grid-template-columns: 32px 1fr 1.2fr 80px; }
-  .env-row { grid-template-columns: 32px 1fr 1.2fr 80px; }
+  .app-container {
+    padding: 1rem 0.85rem;
+  }
+
+  .telemetry-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .env-table-header {
+    grid-template-columns: 32px 1fr 1.2fr 80px;
+  }
+
+  .env-row {
+    grid-template-columns: 32px 1fr 1.2fr 80px;
+  }
 }
 
 @media (max-width: 520px) {
-  .telemetry-grid { grid-template-columns: 1fr; }
-  .env-table-header { display: none; }
-  .env-row { grid-template-columns: 1fr; padding: 0.75rem; }
+  .telemetry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .env-table-header {
+    display: none;
+  }
+
+  .env-row {
+    grid-template-columns: 1fr;
+    padding: 0.75rem;
+  }
 }

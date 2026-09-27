@@ -3,8 +3,8 @@ import { changeMasterPassword, wipeVault } from '../vault/vault.js';
 import { exportBackup, importBackup } from '../vault/backup.js';
 import {
   Settings as SettingsIcon, Download, Upload, Key, ArrowLeft,
-  Shield, Clock, Palette, LogOut, Trash2, User, RefreshCw,
-  AlertTriangle, Check, ShieldCheck, Sun, Moon, Monitor, HardDrive
+  Shield, Clock, LogOut, Trash2, User, RefreshCw,
+  AlertTriangle, Check, ShieldCheck, HardDrive
 } from 'lucide-react';
 
 const TIMEOUT_OPTIONS = [
@@ -26,16 +26,10 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
   const fileInputRef = useRef(null);
 
   const [autoLock, setAutoLock] = useState(localStorage.getItem('envvault_autolock') || '10');
-  const [theme, setTheme] = useState(localStorage.getItem('envvault_theme') || 'system');
 
   useEffect(() => {
     localStorage.setItem('envvault_autolock', autoLock);
   }, [autoLock]);
-
-  useEffect(() => {
-    localStorage.setItem('envvault_theme', theme);
-    window.dispatchEvent(new Event('theme_changed'));
-  }, [theme]);
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });
@@ -363,45 +357,6 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
               onChange={handleImport}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Interface Theme Chassis */}
-      <div className="metal-plate plate-with-screws">
-        <div className="plate-screw top-left" />
-        <div className="plate-screw top-right" />
-        <div className="plate-screw bottom-left" />
-        <div className="plate-screw bottom-right" />
-
-        <h3 style={{ margin: 0, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
-          <Palette size={18} color="var(--amber-core)" /> THEME & APPEARANCE
-        </h3>
-        <p className="text-muted text-small text-mono" style={{ marginBottom: '1.25rem' }}>
-          Choose your visual style.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
-          <button
-            className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
-            onClick={() => setTheme('dark')}
-            style={{ padding: '0.85rem' }}
-          >
-            <Moon size={16} /> Dark Mode
-          </button>
-          <button
-            className={`btn ${theme === 'light' ? 'btn-primary' : ''}`}
-            onClick={() => setTheme('light')}
-            style={{ padding: '0.85rem' }}
-          >
-            <Sun size={16} /> Light Mode
-          </button>
-          <button
-            className={`btn ${theme === 'system' ? 'btn-primary' : ''}`}
-            onClick={() => setTheme('system')}
-            style={{ padding: '0.85rem' }}
-          >
-            <Monitor size={16} /> System Match
-          </button>
         </div>
       </div>
 
