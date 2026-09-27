@@ -171,7 +171,7 @@ export default function ProjectView({ projectId, projectName, onBack, onSelectEn
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                      <span className="text-mono" style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff' }}>
+                      <span className="text-mono" style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
                         {block.label}
                       </span>
                       <span className={`stamped-badge ${badgeType}`}>

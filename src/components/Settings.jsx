@@ -178,7 +178,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <p className="text-mono" style={{ margin: 0, fontWeight: 700, color: '#fff', fontSize: '1rem' }}>{user.email}</p>
+              <p className="text-mono" style={{ margin: 0, fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{user.email}</p>
               {user.displayName && <p className="text-muted text-small text-mono" style={{ margin: '0.15rem 0 0' }}>Name: {user.displayName}</p>}
               <p className="text-muted text-small text-mono" style={{ marginTop: '0.35rem' }}>
                 Your encrypted vault syncs automatically to the cloud.
@@ -223,7 +223,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span className="text-mono" style={{ fontWeight: 700, color: isSelected ? '#fbbf24' : '#fff', fontSize: '0.92rem' }}>
+                  <span className="text-mono" style={{ fontWeight: 700, color: isSelected ? 'var(--amber-core)' : 'var(--text-primary)', fontSize: '0.92rem' }}>
                     {opt.label}
                   </span>
                   <span className={`led-diode ${isSelected ? 'amber' : ''}`} style={{ opacity: isSelected ? 1 : 0.2 }} />
@@ -332,7 +332,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
           <div className="recessed-tray" style={{ padding: '1.25rem' }}>
-            <h4 style={{ margin: 0, marginBottom: '0.35rem', color: '#fff' }}>DOWNLOAD BACKUP</h4>
+            <h4 style={{ margin: 0, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>DOWNLOAD BACKUP</h4>
             <p className="text-muted text-small text-mono" style={{ marginBottom: '1rem', fontSize: '0.75rem' }}>
               Downloads an encrypted <code className="text-mono" style={{ color: 'var(--amber-core)' }}>.envvault.json</code> file with all your projects and secrets.
             </p>
@@ -342,7 +342,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
           </div>
 
           <div className="recessed-tray" style={{ padding: '1.25rem' }}>
-            <h4 style={{ margin: 0, marginBottom: '0.35rem', color: '#fff' }}>RESTORE BACKUP</h4>
+            <h4 style={{ margin: 0, marginBottom: '0.35rem', color: 'var(--text-primary)' }}>RESTORE BACKUP</h4>
             <p className="text-muted text-small text-mono" style={{ marginBottom: '1rem', fontSize: '0.75rem' }}>
               Restore from a previously saved backup file. Note: This will replace current data.
             </p>
@@ -380,7 +380,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
         ) : (
           <div className="recessed-tray" style={{ padding: '1.25rem' }}>
             <p className="text-small text-mono" style={{ color: '#fca5a5', marginBottom: '0.85rem' }}>
-              Type <strong style={{ color: '#fff' }}>DELETE</strong> in capital letters to confirm:
+              Type <strong style={{ color: 'var(--text-primary)' }}>DELETE</strong> in capital letters to confirm:
             </p>
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <input

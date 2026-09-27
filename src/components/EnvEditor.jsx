@@ -235,7 +235,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
                 background: 'transparent',
                 border: 'none',
                 boxShadow: 'none',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 padding: 0,
                 letterSpacing: '0.02em'
               }}

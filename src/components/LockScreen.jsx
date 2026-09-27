@@ -161,7 +161,7 @@ export default function LockScreen({ onUnlocked, user, onSignOut }) {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
               <User size={13} color="var(--amber-core)" />
-              <span className="text-mono" style={{ color: '#fff', fontWeight: 600 }}>
+              <span className="text-mono" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
                 {user.displayName || user.email}
               </span>
             </div>
