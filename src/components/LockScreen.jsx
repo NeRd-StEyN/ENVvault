@@ -121,8 +121,7 @@ export default function LockScreen({ onUnlocked, user, onSignOut }) {
             background: '#090c12',
             padding: '0.65rem 1rem',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid rgba(0,0,0,0.9)',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
             marginBottom: '1.5rem'
           }}
@@ -152,8 +151,8 @@ export default function LockScreen({ onUnlocked, user, onSignOut }) {
               padding: '0.45rem 0.85rem',
               borderRadius: 'var(--radius-xs)',
               background: 'linear-gradient(180deg, #26262b 0%, #141417 100%)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderBottom: '1px solid rgba(0,0,0,0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
               marginBottom: '1.25rem',
               fontSize: '0.75rem',
               color: 'var(--text-secondary)'

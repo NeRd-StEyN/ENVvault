@@ -153,7 +153,7 @@ export default function CliDocs({ onBack }) {
             background: '#090c12',
             padding: '0.35rem',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid rgba(0,0,0,0.9)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)'
           }}
         >
@@ -269,8 +269,7 @@ export default function CliDocs({ onBack }) {
                         background: '#07090d',
                         padding: '0.65rem 0.85rem',
                         borderRadius: 'var(--radius-xs)',
-                        border: '1px solid rgba(0,0,0,0.9)',
-                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
                         display: 'flex',
                         alignItems: 'center',

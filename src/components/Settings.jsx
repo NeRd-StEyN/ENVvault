@@ -224,7 +224,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
                   padding: '0.85rem 1rem',
                   borderRadius: 'var(--radius-sm)',
                   background: isSelected ? 'linear-gradient(180deg, #26262b 0%, #141417 100%)' : 'var(--metal-recess)',
-                  border: isSelected ? '1px solid var(--amber-core)' : '1px solid rgba(0,0,0,0.9)',
+                  border: isSelected ? '1px solid var(--amber-core)' : '1px solid rgba(255, 255, 255, 0.12)',
                   boxShadow: isSelected ? '0 0 12px rgba(245, 158, 11, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)' : 'var(--shadow-recessed)'
                 }}
               >
@@ -287,7 +287,7 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
                 <span className="text-muted">PASSWORD STRENGTH:</span>
                 <span style={{ color: strength.color, fontWeight: 700 }}>{strength.label}</span>
               </div>
-              <div style={{ height: '6px', background: '#090c12', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.9)', overflow: 'hidden' }}>
+              <div style={{ height: '6px', background: '#090c12', borderRadius: '3px', border: '1px solid rgba(255, 255, 255, 0.14)', overflow: 'hidden' }}>
                 <div
                   style={{
                     height: '100%',

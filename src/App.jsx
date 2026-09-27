@@ -299,7 +299,7 @@ function App() {
             <div className="plate-screw bottom-left" />
             <div className="plate-screw bottom-right" />
 
-            <div style={{ display: 'flex', alignItems: 'center', padding: '1rem 1.25rem', gap: '0.75rem', borderBottom: '1px solid rgba(0,0,0,0.8)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '1rem 1.25rem', gap: '0.75rem', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
               <Search size={18} color="var(--amber-core)" />
               <input
                 type="text"
@@ -380,7 +380,6 @@ function App() {
               borderRadius: 'var(--radius-sm)',
               background: 'linear-gradient(180deg, #303036 0%, #17171a 100%)',
               border: '1px solid rgba(255,255,255,0.2)',
-              borderBottom: '2px solid rgba(0,0,0,0.9)',
               boxShadow: '0 3px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.3)',
               display: 'flex',
               alignItems: 'center',
@@ -452,8 +451,7 @@ function App() {
               background: '#090c12',
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
-              border: '1px solid rgba(0,0,0,0.9)',
-              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)'
             }}
           >

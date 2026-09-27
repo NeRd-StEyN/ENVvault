@@ -49,7 +49,6 @@ export default function ConfirmModal({ title, description, confirmText, onConfir
               borderRadius: 'var(--radius-xs)',
               background: 'linear-gradient(180deg, #991b1b 0%, #450a0a 100%)',
               border: '1px solid rgba(255, 100, 100, 0.4)',
-              borderBottom: '2px solid #280505',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

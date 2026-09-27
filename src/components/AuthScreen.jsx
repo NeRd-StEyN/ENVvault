@@ -119,8 +119,7 @@ export default function AuthScreen({ onAuthenticated }) {
             background: '#090c12',
             padding: '0.5rem 0.85rem',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid rgba(0,0,0,0.9)',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
             marginBottom: '1.5rem',
             fontSize: '0.68rem',
@@ -149,8 +148,7 @@ export default function AuthScreen({ onAuthenticated }) {
             background: '#090c12',
             padding: '0.3rem',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid rgba(0,0,0,0.9)',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
             marginBottom: '1.5rem'
           }}

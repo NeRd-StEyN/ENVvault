@@ -268,7 +268,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
 
         {/* Physical View Selector Buttons */}
         <div className="flex-gap">
-          <div style={{ display: 'flex', gap: '0.35rem', background: '#090c12', padding: '0.3rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.9)' }}>
+          <div style={{ display: 'flex', gap: '0.35rem', background: '#090c12', padding: '0.3rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <button
               className={`btn ${activeTab === 'grid' ? 'btn-primary' : ''}`}
               onClick={switchToGrid}
@@ -385,7 +385,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
                       <button
                         className="btn"
-                        style={{ padding: '0.4rem', border: '1px solid rgba(255,255,255,0.08)' }}
+                        style={{ padding: '0.4rem' }}
                         onClick={() => handleCopyValue(i, v.value)}
                         title="Copy value"
                       >
@@ -432,7 +432,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
               justifyContent: 'space-between',
               padding: '0.55rem 1rem',
               background: 'linear-gradient(180deg, #1f1f24 0%, #131316 100%)',
-              borderBottom: '1px solid rgba(0,0,0,0.9)'
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
