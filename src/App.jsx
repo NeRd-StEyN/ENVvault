@@ -48,8 +48,13 @@ function App() {
   }, []);
 
   const handleSignOut = useCallback(async () => {
+    setAppState('unauthenticated');
     lockVault();
-    await signOutUser();
+    try {
+      await signOutUser();
+    } catch (err) {
+      console.error('Failed to sign out from Firebase:', err);
+    }
   }, []);
 
   // ── Network listener ──────────────────────────────────────────────────────
