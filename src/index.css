@@ -70,31 +70,6 @@
   --success-color: var(--led-green);
 }
 
-/* Light Theme: Brushed Laboratory Stainless Steel & Off-White */
-body.light-theme {
-  --chassis-dark: #d4d4d8;
-  --chassis-base: #e4e4e7;
-  --chassis-mid: #f4f4f5;
-  --chassis-light: #ffffff;
-  --inset-dark: #cbd2df;
-  --inset-surface: #d5dbe6;
-
-  --metal-plate: linear-gradient(180deg, #ffffff 0%, #f4f4f5 50%, #e4e4e7 100%);
-  --metal-plate-hover: linear-gradient(180deg, #ffffff 0%, #f9f9fa 50%, #ececed 100%);
-  --metal-recess: linear-gradient(180deg, #c4c4c8 0%, #dcdce0 100%);
-
-  --shadow-plate: 0 8px 24px rgba(0, 0, 0, 0.15), 0 1px 0 #ffffff inset, 0 -1px 0 rgba(0, 0, 0, 0.1) inset;
-  --shadow-recessed: inset 0 3px 6px rgba(0, 0, 0, 0.22), 0 1px 0 #ffffff;
-  --shadow-button-3d: 0 3px 5px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
-
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-tertiary: #71717a;
-  --text-muted: #a1a1aa;
-  --text-lcd: #d97706;
-
-  --text-engraved: 0 1px 0 #ffffff;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    GLOBAL RESET & HARDWARE TEXTURES
