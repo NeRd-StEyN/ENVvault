@@ -25,8 +25,13 @@ export default function ProjectView({ projectId, projectName, onBack, onSelectEn
   }, [projectId]);
 
   const loadEnvs = async () => {
-    const blocks = await getEnvironmentBlocks(projectId);
-    setEnvBlocks(blocks);
+    try {
+      const blocks = await getEnvironmentBlocks(projectId);
+      setEnvBlocks(blocks);
+    } catch {
+      // Project was deleted on another client or CLI
+      onBack();
+    }
   };
 
   const handleDelete = async () => {

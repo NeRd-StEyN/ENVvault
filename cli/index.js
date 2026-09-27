@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { randomUUID } = require('crypto');
+const { spawn } = require('child_process');
 const { initializeApp } = require('firebase/app');
 const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
 const { getFirestore, doc, getDoc, setDoc } = require('firebase/firestore');
@@ -119,18 +120,60 @@ function serializeVault(vault) {
   };
 }
 
+const cachePath = path.join(os.homedir(), '.envvault-cache.json');
+
+function saveEncryptedCache(serializedData) {
+  try {
+    fs.writeFileSync(cachePath, JSON.stringify(serializedData), 'utf8');
+  } catch {}
+}
+
+function loadEncryptedCache() {
+  try {
+    if (fs.existsSync(cachePath)) {
+      return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    }
+  } catch {}
+  return null;
+}
+
+function parseEnv(str) {
+  if (!str) return {};
+  const env = {};
+  const lines = str.split('\n');
+  for (let line of lines) {
+    line = line.trim();
+    if (!line || line.startsWith('#')) continue;
+    if (line.startsWith('export ')) line = line.replace(/^export\s+/, '').trim();
+    const idx = line.indexOf('=');
+    if (idx > -1) {
+      let key = line.slice(0, idx).trim();
+      let value = line.slice(idx + 1).trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      env[key] = value;
+    }
+  }
+  return env;
+}
+
 async function fetchVault(uid) {
   const vaultRef = doc(db, 'vaults', uid);
   const snap = await getDoc(vaultRef);
   if (!snap.exists()) {
     throw new Error('No vault found in the cloud. Please create one in the web app first.');
   }
-  return deserializeVault(snap.data());
+  const rawData = snap.data();
+  saveEncryptedCache(rawData);
+  return deserializeVault(rawData);
 }
 
 async function uploadVault(uid, vaultData) {
   const vaultRef = doc(db, 'vaults', uid);
-  await setDoc(vaultRef, serializeVault(vaultData));
+  const serialized = serializeVault(vaultData);
+  await setDoc(vaultRef, serialized);
+  saveEncryptedCache(serialized);
 }
 
 async function unlockVault(vaultData, masterPassword) {
@@ -167,24 +210,65 @@ async function promptMasterPassword() {
   return masterPassword;
 }
 
-async function authenticateAndUnlock() {
+async function authenticateAndUnlock(requireOnline = false) {
   const creds = getCredentials();
-  await signInWithEmailAndPassword(auth, creds.email, creds.password);
+  let user = null;
+  let vaultData = null;
+  let isOffline = false;
 
-  const user = await new Promise((resolve) => {
-    const unsubscribe = auth.onAuthStateChanged((u) => {
-      if (u) {
-        unsubscribe();
-        resolve(u);
-      }
+  try {
+    await signInWithEmailAndPassword(auth, creds.email, creds.password);
+    user = await new Promise((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged((u) => {
+        if (u) {
+          unsubscribe();
+          resolve(u);
+        }
+      });
     });
-  });
+    vaultData = await fetchVault(user.uid);
+  } catch (err) {
+    const isNetworkError =
+      err.code === 'auth/network-request-failed' ||
+      err.code === 'unavailable' ||
+      err.message?.includes('offline') ||
+      err.message?.includes('network');
 
-  const vaultData = await fetchVault(user.uid);
-  const masterPassword = await promptMasterPassword();
-  const key = await unlockVault(vaultData, masterPassword);
+    if (isNetworkError && !requireOnline) {
+      const cached = loadEncryptedCache();
+      if (cached) {
+        console.warn('⚡ Network unavailable — running in offline mode using zero-knowledge local cache.');
+        vaultData = deserializeVault(cached);
+        isOffline = true;
+      } else {
+        throw new Error('You are offline and no local cache was found. Please connect to the internet first.');
+      }
+    } else if (requireOnline && isNetworkError) {
+      throw new Error('Cannot sync changes while offline. Please connect to the internet.');
+    } else {
+      throw err;
+    }
+  }
 
-  return { user, vaultData, key };
+  // Master password prompt with 3 retry attempts
+  let key = null;
+  let attempts = 0;
+  while (attempts < 3) {
+    const masterPassword = await promptMasterPassword();
+    try {
+      key = await unlockVault(vaultData, masterPassword);
+      break;
+    } catch {
+      attempts++;
+      if (attempts < 3) {
+        console.error(`❌ Incorrect master password. (${3 - attempts} attempt${3 - attempts === 1 ? '' : 's'} remaining)`);
+      } else {
+        throw new Error('Authentication failed (wrong master password after 3 attempts)');
+      }
+    }
+  }
+
+  return { user, vaultData, key, isOffline };
 }
 
 // --- COMMANDS ---
@@ -192,7 +276,8 @@ async function authenticateAndUnlock() {
 program
   .name('envvault')
   .description('CLI for EnvVault - Zero-Knowledge Secret Manager')
-  .version('1.0.0');
+  .version('1.1.0')
+  .enablePositionalOptions();
 
 program
   .command('login')
@@ -225,13 +310,116 @@ program
   });
 
 program
+  .command('list')
+  .alias('ls')
+  .description('List all projects and environment files stored in your vault')
+  .action(async () => {
+    try {
+      const { vaultData, key } = await authenticateAndUnlock(false);
+      console.log('\n🔒 ENVVAULT SECURE REPOSITORY INVENTORY');
+      console.log('═'.repeat(54));
+
+      if (vaultData.projects.length === 0) {
+        console.log('No projects found in vault.');
+        console.log('Push your first file: envvault push <project> <env> -i .env\n');
+        process.exit(0);
+      }
+
+      for (const proj of vaultData.projects) {
+        const name = await decryptData(proj.nameCiphertext, proj.nameIv, key);
+        console.log(`📁 Project: \x1b[1m\x1b[33m${name}\x1b[0m (${proj.envBlocks.length} env file${proj.envBlocks.length !== 1 ? 's' : ''})`);
+        for (const block of proj.envBlocks) {
+          const label = await decryptData(block.labelCiphertext, block.labelIv, key);
+          console.log(`   └─ 📄 ${label}`);
+        }
+      }
+      console.log('═'.repeat(54) + '\n');
+      process.exit(0);
+    } catch (err) {
+      console.error('❌ Error:', err.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('run <project_name> [env_label]')
+  .alias('exec')
+  .description('Inject decrypted secrets directly into a command without creating any file on disk')
+  .allowUnknownOption()
+  .passThroughOptions()
+  .action(async (projectName, envLabel) => {
+    try {
+      const dashIdx = process.argv.indexOf('--');
+      if (dashIdx === -1 || dashIdx === process.argv.length - 1) {
+        console.error('❌ Error: Missing command to run.');
+        console.error('Usage: envvault run <project_name> [env_label] -- <command>');
+        console.error('Example: envvault run my-app .env.production -- npm start');
+        process.exit(1);
+      }
+      const commandToRun = process.argv.slice(dashIdx + 1);
+
+      const { vaultData, key } = await authenticateAndUnlock(false);
+
+      let targetProject = null;
+      for (const proj of vaultData.projects) {
+        const name = await decryptData(proj.nameCiphertext, proj.nameIv, key);
+        if (name === projectName) {
+          targetProject = proj;
+          break;
+        }
+      }
+      if (!targetProject) throw new Error(`Project "${projectName}" not found.`);
+
+      let targetBlock = null;
+      let targetLabel = '';
+      if (envLabel && envLabel !== '--') {
+        for (const block of targetProject.envBlocks) {
+          const label = await decryptData(block.labelCiphertext, block.labelIv, key);
+          if (label === envLabel) {
+            targetBlock = block;
+            targetLabel = label;
+            break;
+          }
+        }
+        if (!targetBlock) throw new Error(`Env "${envLabel}" not found in project "${projectName}".`);
+      } else {
+        if (targetProject.envBlocks.length === 0) throw new Error(`No env blocks found in project "${projectName}".`);
+        targetBlock = targetProject.envBlocks[0];
+        targetLabel = await decryptData(targetBlock.labelCiphertext, targetBlock.labelIv, key);
+      }
+
+      const content = await decryptData(targetBlock.contentCiphertext, targetBlock.contentIv, key);
+      const injectedEnv = parseEnv(content);
+      const varCount = Object.keys(injectedEnv).length;
+
+      console.log(`🚀 [ENVVAULT] Injecting ${varCount} secrets from [${projectName} / ${targetLabel}] into: "${commandToRun.join(' ')}"\n`);
+
+      const child = spawn(commandToRun[0], commandToRun.slice(1), {
+        stdio: 'inherit',
+        shell: true,
+        env: {
+          ...process.env,
+          ...injectedEnv
+        }
+      });
+
+      child.on('exit', (code) => {
+        process.exit(code || 0);
+      });
+    } catch (err) {
+      console.error('❌ Error:', err.message);
+      process.exit(1);
+    }
+  });
+
+program
   .command('pull <project_name> [env_label]')
   .alias('get')
   .description('Pull env variables and print to stdout or save to file')
   .option('-o, --out <file>', 'Output file (e.g., .env)')
   .action(async (projectName, envLabel, options) => {
     try {
-      const { vaultData, key } = await authenticateAndUnlock();
+      const { vaultData, key } = await authenticateAndUnlock(false);
 
       let targetProject = null;
       for (const proj of vaultData.projects) {
@@ -284,8 +472,13 @@ program
   .requiredOption('-i, --in <file>', 'Input file (e.g., .env)')
   .action(async (projectName, envLabel, options) => {
     try {
-      const { user, vaultData, key } = await authenticateAndUnlock();
-      const content = fs.readFileSync(path.resolve(process.cwd(), options.in), 'utf8');
+      const inputPath = path.resolve(process.cwd(), options.in);
+      if (!fs.existsSync(inputPath)) {
+        console.error(`❌ Input file not found: ${options.in}`);
+        process.exit(1);
+      }
+      const { user, vaultData, key } = await authenticateAndUnlock(true);
+      const content = fs.readFileSync(inputPath, 'utf8');
 
       let targetProject = null;
       for (const proj of vaultData.projects) {
@@ -351,7 +544,7 @@ program
   .description('Delete a project from the vault')
   .action(async (projectName) => {
     try {
-      const { user, vaultData, key } = await authenticateAndUnlock();
+      const { user, vaultData, key } = await authenticateAndUnlock(true);
 
       let projIndex = -1;
       for (let i = 0; i < vaultData.projects.length; i++) {
@@ -392,7 +585,7 @@ program
   .description('Delete an environment block from a project')
   .action(async (projectName, envLabel) => {
     try {
-      const { user, vaultData, key } = await authenticateAndUnlock();
+      const { user, vaultData, key } = await authenticateAndUnlock(true);
 
       let targetProject = null;
       for (const proj of vaultData.projects) {

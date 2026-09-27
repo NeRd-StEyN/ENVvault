@@ -106,9 +106,12 @@ export async function unlockVault(password) {
 /**
  * Locks the vault, clearing the key and data from memory.
  */
-export function lockVault() {
+export function lockVault(broadcast = true) {
   currentKey = null;
   currentVaultData = null;
+  if (broadcast) {
+    try { tabChannel?.postMessage({ type: 'LOCK' }); } catch {}
+  }
 }
 
 /**
@@ -164,6 +167,7 @@ function ensureUnlocked() {
 }
 
 const vaultChangeListeners = new Set();
+const tabChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('envvault_sync_channel') : null;
 
 /**
  * Register a listener that fires whenever the in-memory vault updates (e.g. from cloud or local edit)
@@ -173,9 +177,9 @@ export function onVaultChange(fn) {
   return () => vaultChangeListeners.delete(fn);
 }
 
-function notifyVaultChange() {
+function notifyVaultChange(meta = {}) {
   vaultChangeListeners.forEach(fn => {
-    try { fn(); } catch (err) { console.error("Vault listener error:", err); }
+    try { fn(meta); } catch (err) { console.error("Vault listener error:", err); }
   });
 }
 
@@ -188,7 +192,7 @@ async function persist() {
     currentVaultData.updatedAt = Date.now();
   }
   await saveVault(currentVaultData);
-  notifyVaultChange();
+  notifyVaultChange({ reason: 'local_edit' });
   // Fire-and-forget cloud sync (non-blocking)
   syncToCloud(currentVaultData).catch(() => {
     // Silently ignored — will auto-sync when internet is restored
@@ -207,24 +211,54 @@ async function syncToCloud(vault) {
 
 /**
  * Applies a real-time cloud vault update if the incoming cloud vault is newer.
+ * Safely verifies if the current in-memory key can decrypt the new ciphertext.
  */
 export async function applyCloudVaultUpdate(cloudVault) {
   if (!isUnlocked() || !cloudVault) return;
   const localTime = currentVaultData?.updatedAt || 0;
   const cloudTime = cloudVault.updatedAt || 0;
   if (cloudTime > localTime) {
-    currentVaultData = cloudVault;
-    await saveVault(cloudVault);
-    notifyVaultChange();
+    // Verify whether currentKey can still decrypt magicCiphertext
+    try {
+      const magic = await decryptData(cloudVault.magicCiphertext, cloudVault.magicIv, currentKey);
+      if (magic !== MAGIC_STRING) {
+        throw new Error('Key mismatch');
+      }
+      currentVaultData = cloudVault;
+      await saveVault(cloudVault);
+      notifyVaultChange({ reason: 'cloud_update' });
+    } catch {
+      // The master password was changed remotely on another device or CLI!
+      // Persist the new encrypted ciphertext locally, but lock memory state because currentKey is invalid.
+      await saveVault(cloudVault);
+      lockVault();
+      notifyVaultChange({ reason: 'password_changed_remotely' });
+    }
   }
 }
 
 /**
- * Manually trigger cloud sync for current vault state (e.g. when coming back online)
+ * Trigger cloud sync for current vault state (e.g. when coming back online).
+ * Checks whether cloud was updated while offline to avoid overwriting newer data.
  */
 export async function syncVaultToCloud() {
-  if (isUnlocked() && currentVaultData) {
+  if (!isUnlocked() || !currentVaultData) return;
+  const user = getCurrentUser();
+  if (!user) return;
+  try {
+    const cloudVault = await downloadVault(user.uid);
+    if (cloudVault) {
+      const localTime = currentVaultData.updatedAt || 0;
+      const cloudTime = cloudVault.updatedAt || 0;
+      if (cloudTime > localTime) {
+        // Cloud has newer data created while this client was offline
+        await applyCloudVaultUpdate(cloudVault);
+        return;
+      }
+    }
     await syncToCloud(currentVaultData);
+  } catch (err) {
+    console.warn("syncVaultToCloud error:", err);
   }
 }
 
@@ -402,12 +436,16 @@ export async function changeMasterPassword(newPassword) {
     kdfParams: currentVaultData.kdfParams,
     magicCiphertext: newMagic,
     magicIv: newMagicIv,
-    projects: newProjects
+    projects: newProjects,
+    updatedAt: Date.now()
   };
   
   await saveVault(newVault);
   currentKey = newKey;
   currentVaultData = newVault;
+
+  notifyVaultChange({ reason: 'password_changed' });
+  try { tabChannel?.postMessage({ type: 'PASSWORD_CHANGED' }); } catch {}
 
   // Sync the re-encrypted vault to cloud
   await syncToCloud(newVault);

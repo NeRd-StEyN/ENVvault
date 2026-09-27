@@ -3,7 +3,8 @@ import {
   addEnvironmentBlock,
   updateEnvironmentBlock,
   deleteEnvironmentBlock,
-  getEnvironmentBlocks
+  getEnvironmentBlocks,
+  onVaultChange
 } from '../vault/vault.js';
 import ConfirmModal from './ConfirmModal.jsx';
 import {
@@ -13,14 +14,19 @@ import {
 } from 'lucide-react';
 
 const parseEnv = (str) => {
+  if (!str) return [];
   const lines = str.split('\n');
   const parsed = [];
   lines.forEach(line => {
-    if (!line.trim() || line.startsWith('#')) return;
-    const idx = line.indexOf('=');
+    let trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+    if (trimmed.startsWith('export ')) {
+      trimmed = trimmed.replace(/^export\s+/, '').trim();
+    }
+    const idx = trimmed.indexOf('=');
     if (idx > -1) {
-      let key = line.slice(0, idx).trim();
-      let value = line.slice(idx + 1).trim();
+      let key = trimmed.slice(0, idx).trim();
+      let value = trimmed.slice(idx + 1).trim();
       if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
         value = value.slice(1, -1);
       }
@@ -31,11 +37,11 @@ const parseEnv = (str) => {
 };
 
 const stringifyVars = (vars) => {
-  return vars
-    .filter(v => v.key.trim())
+  return (vars || [])
+    .filter(v => v && v.key && v.key.trim())
     .map(v => {
       const key = v.key.trim();
-      let val = v.value;
+      let val = v.value != null ? String(v.value) : '';
       if (val.includes('\n') || val.includes(' ') || val.includes('#')) {
         val = `"${val.replace(/"/g, '\\"')}"`;
       }
@@ -89,7 +95,24 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
     } else if (initialBlock?.content) {
       setRawText(initialBlock.content);
     }
-  }, [initialBlock, projectId]);
+
+    const checkState = async () => {
+      try {
+        const blocks = await getEnvironmentBlocks(projectId);
+        if (initialBlock) {
+          const exists = blocks.some(b => b.id === initialBlock.id);
+          if (!exists) {
+            onBack();
+          }
+        }
+      } catch {
+        onBack();
+      }
+    };
+
+    const unsub = onVaultChange(checkState);
+    return () => unsub();
+  }, [initialBlock, projectId, onBack]);
 
   const switchToRaw = () => {
     setRawText(stringifyVars(vars));

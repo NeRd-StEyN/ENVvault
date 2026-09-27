@@ -23,6 +23,35 @@ const RAW_COMMANDS = [
     ]
   },
   {
+    category: 'INVENTORY & EXPLORATION',
+    title: 'List Projects & Environments',
+    description: 'View all projects and their corresponding environment files directly in the terminal.',
+    commands: [
+      {
+        label: 'List all vault projects & files',
+        cmd: 'list',
+        desc: 'Displays an inventory tree of all projects and .env files stored in your zero-knowledge vault (alias: ls).'
+      }
+    ]
+  },
+  {
+    category: 'IN-MEMORY EXECUTION (RUN)',
+    title: 'Inject Secrets Directly Into Processes',
+    description: 'Launch applications with decrypted variables injected directly into memory without writing any plaintext .env file to disk.',
+    commands: [
+      {
+        label: 'Run dev server with secrets',
+        cmd: 'run "my-project" .env.production -- npm start',
+        desc: 'Decrypts and injects production secrets directly into your process in RAM without creating a file (alias: exec).'
+      },
+      {
+        label: 'Run Python script with secrets',
+        cmd: 'run "my-project" -- python main.py',
+        desc: 'Runs python main.py with the project’s default environment variables injected directly into process.env.'
+      }
+    ]
+  },
+  {
     category: 'PULL SECRETS (DOWNLOAD)',
     title: 'Pull Encrypted Secrets to Local .env',
     description: 'Decrypts environment variables from your cloud vault and writes them directly into a local .env file on your computer.',

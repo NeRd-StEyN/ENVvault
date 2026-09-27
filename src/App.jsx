@@ -7,7 +7,7 @@ import EnvEditor from './components/EnvEditor.jsx';
 import Settings from './components/Settings.jsx';
 import SecurityAbout from './components/SecurityAbout.jsx';
 import CliDocs from './components/CliDocs.jsx';
-import { lockVault, isUnlocked, searchVault, syncVaultToCloud, applyCloudVaultUpdate } from './vault/vault.js';
+import { lockVault, isUnlocked, searchVault, syncVaultToCloud, applyCloudVaultUpdate, onVaultChange } from './vault/vault.js';
 import { subscribeToVault } from './auth/cloud-sync.js';
 import { onAuthState, signOutUser } from './auth/auth.js';
 import {
@@ -77,6 +77,32 @@ function App() {
       return () => unsubscribe();
     }
   }, [appState, firebaseUser?.uid]);
+
+  // ── Multi-tab & Remote Lock / Change Listeners ───────────────────────────
+  useEffect(() => {
+    // 1. In-memory vault listener (e.g. password changed remotely)
+    const unsub = onVaultChange((meta) => {
+      if (meta?.reason === 'password_changed_remotely') {
+        handleLock(false);
+      }
+    });
+
+    // 2. BroadcastChannel across different browser tabs of the same origin
+    let channel = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel = new BroadcastChannel('envvault_sync_channel');
+      channel.onmessage = (e) => {
+        if (e.data?.type === 'LOCK' || e.data?.type === 'PASSWORD_CHANGED') {
+          handleLock(false);
+        }
+      };
+    }
+
+    return () => {
+      unsub();
+      if (channel) channel.close();
+    };
+  }, [handleLock]);
 
   // ── Auto-lock timer (Touch, Mouse, Keyboard & Tab Visibility Aware) ───────
   useEffect(() => {
@@ -194,13 +220,13 @@ function App() {
     setCurrentView('dashboard');
   };
 
-  const handleLock = () => {
-    lockVault();
+  const handleLock = useCallback((broadcast = true) => {
+    lockVault(broadcast);
     setAppState('locked');
     setActiveProjectId(null);
     setActiveEnvBlock(null);
     setSearchOpen(false);
-  };
+  }, []);
 
   const handleSignOut = async () => {
     lockVault();

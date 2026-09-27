@@ -107,8 +107,31 @@ describe('Vault Logic', () => {
     const blocks = await getEnvironmentBlocks(projId);
     expect(blocks[0].content).toBe('FOO=BAR');
     
-    // Verify ciphertext actually changed by loading raw DB
+    // Verify ciphertext actually changed and updatedAt is stamped
     const rawVault = await loadVault();
-    // Re-unlocking with new password guarantees the vault was saved with new keys
+    expect(rawVault.updatedAt).toBeGreaterThan(0);
+  });
+
+  it('safely locks vault when cloud vault has a new master password', async () => {
+    await createVault('original_pass');
+    expect(isUnlocked()).toBe(true);
+
+    // Create a mock cloud vault with a different salt and key (representing password change on another device)
+    const newSalt = crypto.getRandomValues(new Uint8Array(16));
+    const foreignVault = {
+      version: 1,
+      salt: newSalt,
+      kdfParams: { algorithm: 'PBKDF2', hash: 'SHA-256', iterations: 250000 },
+      magicCiphertext: new Uint8Array([1, 2, 3]),
+      magicIv: new Uint8Array(12),
+      projects: [],
+      updatedAt: Date.now() + 10000
+    };
+
+    const { applyCloudVaultUpdate } = await import('./vault.js');
+    await applyCloudVaultUpdate(foreignVault);
+
+    // Should lock immediately to prevent memory corruption with old keys
+    expect(isUnlocked()).toBe(false);
   });
 });
