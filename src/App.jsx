@@ -519,7 +519,7 @@ function App() {
             className="btn"
             onClick={handleLock}
             style={{ border: '1px solid rgba(245, 158, 11, 0.65)' }}
-            title="Lock Vault"
+            title="Lock Vault (requires master password to unlock)"
           >
             <Lock size={14} color="var(--amber-core)" />
             <span>Lock</span>
@@ -529,10 +529,11 @@ function App() {
           <button
             className="btn btn-danger-ghost"
             onClick={handleSignOut}
-            title="Sign Out"
-            style={{ padding: '0.55rem' }}
+            title="Log Out (sign out of account)"
+            style={{ padding: '0.45rem 0.65rem', gap: '0.35rem' }}
           >
             <LogOut size={14} />
+            <span style={{ fontSize: '0.78rem' }}>Log Out</span>
           </button>
         </div>
       </header>
