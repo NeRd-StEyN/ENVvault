@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Lock, Mail, User, ArrowRight, KeyRound, ShieldCheck, RefreshCw } from 'lucide-react';
+import {
+  Shield, Mail, User, ArrowRight, KeyRound, ShieldCheck,
+  RefreshCw, Terminal, CheckCircle2, Lock, Cpu, Cloud
+} from 'lucide-react';
 import { registerUser, signInUser, sendResetEmail } from '../auth/auth.js';
 
-// 'signin' | 'signup' | 'reset'
 const VIEWS = { SIGNIN: 'signin', SIGNUP: 'signup', RESET: 'reset' };
 
 export default function AuthScreen({ onAuthenticated }) {
@@ -30,14 +32,14 @@ export default function AuthScreen({ onAuthenticated }) {
   const friendlyError = (err) => {
     const code = err?.code || '';
     if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) {
-      return 'Invalid email or password.';
+      return 'Incorrect email or password.';
     }
-    if (code.includes('email-already-in-use')) return 'An account with this email already exists.';
+    if (code.includes('email-already-in-use')) return 'An account with this email already exists. Please sign in.';
     if (code.includes('weak-password')) return 'Password must be at least 6 characters.';
     if (code.includes('invalid-email')) return 'Please enter a valid email address.';
-    if (code.includes('network-request-failed')) return 'No internet connection. Please try again.';
-    if (code.includes('too-many-requests')) return 'Too many attempts. Please try again later.';
-    return err?.message || 'Something went wrong. Please try again.';
+    if (code.includes('network-request-failed')) return 'Network error. Please check your internet connection.';
+    if (code.includes('too-many-requests')) return 'Too many attempts. Please try again in a moment.';
+    return err?.message || 'Unable to sign in. Please try again.';
   };
 
   const handleSignIn = async (e) => {
@@ -84,35 +86,117 @@ export default function AuthScreen({ onAuthenticated }) {
   };
 
   return (
-    <div className="auth-screen">
-      <div className="auth-card">
-        {/* Logo & Brand */}
-        <div className="auth-brand">
-          <div className="auth-logo">
-            <Lock size={28} color="#58a6ff" />
+    <div className="center-screen" style={{ minHeight: '100vh', padding: '1.5rem' }}>
+      <div className="vault-door-chassis plate-with-screws" style={{ maxWidth: '460px', width: '100%' }}>
+        <div className="plate-screw top-left" />
+        <div className="plate-screw top-right" />
+        <div className="plate-screw bottom-left" />
+        <div className="plate-screw bottom-right" />
+
+        {/* Brand Shield Hub */}
+        <div className="vault-tumbler-dial">
+          <div className="vault-tumbler-hub">
+            <Shield size={24} />
           </div>
-          <h1 className="auth-title">EnvVault</h1>
-          <p className="auth-subtitle">Zero-knowledge secret management</p>
         </div>
 
-        {/* Security badges */}
-        <div className="auth-badges">
-          <span className="auth-badge"><ShieldCheck size={12} /> AES-256-GCM</span>
-          <span className="auth-badge"><ShieldCheck size={12} /> Zero-knowledge</span>
-          <span className="auth-badge"><ShieldCheck size={12} /> Offline-first</span>
+        {/* Title */}
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
+            ENVVAULT
+          </h1>
+          <p className="text-muted text-small text-mono">
+            SECURE ENVIRONMENT VARIABLE VAULT
+          </p>
         </div>
 
-        {/* Sign In Form */}
+        {/* Hardware Status Strip */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            background: '#090c12',
+            padding: '0.5rem 0.85rem',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid rgba(0,0,0,0.9)',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
+            marginBottom: '1.5rem',
+            fontSize: '0.68rem',
+            fontFamily: 'var(--font-mono)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span className="led-diode green" />
+            <span style={{ color: '#34d399', fontWeight: 700 }}>AES-256-GCM</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span className="led-diode amber" />
+            <span style={{ color: '#fbbf24', fontWeight: 700 }}>CLOUD SYNC</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span className="led-diode amber" />
+            <span style={{ color: '#fbbf24', fontWeight: 700 }}>ZERO-KNOWLEDGE</span>
+          </div>
+        </div>
+
+        {/* Tactical View Switcher */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: view === VIEWS.RESET ? '1fr' : '1fr 1fr',
+            background: '#090c12',
+            padding: '0.3rem',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid rgba(0,0,0,0.9)',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
+            marginBottom: '1.5rem'
+          }}
+        >
+          {view === VIEWS.RESET ? (
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.45rem', fontSize: '0.78rem' }}
+            >
+              RESET PASSWORD
+            </button>
+          ) : (
+            <>
+              <button
+                className={`btn ${view === VIEWS.SIGNIN ? 'btn-primary' : ''}`}
+                onClick={() => switchView(VIEWS.SIGNIN)}
+                style={{ padding: '0.45rem', fontSize: '0.78rem' }}
+              >
+                SIGN IN
+              </button>
+              <button
+                className={`btn ${view === VIEWS.SIGNUP ? 'btn-primary' : ''}`}
+                onClick={() => switchView(VIEWS.SIGNUP)}
+                style={{ padding: '0.45rem', fontSize: '0.78rem' }}
+              >
+                CREATE ACCOUNT
+              </button>
+            </>
+          )}
+        </div>
+
+        {error && (
+          <div className="error-text">
+            <span className="text-mono" style={{ fontSize: '0.8rem' }}>{error}</span>
+          </div>
+        )}
+
+        {/* SIGN IN */}
         {view === VIEWS.SIGNIN && (
-          <form onSubmit={handleSignIn} className="auth-form">
-            <h2 className="auth-form-title">Welcome back</h2>
-
-            {error && <div className="auth-error">{error}</div>}
-
-            <div className="auth-field">
-              <label className="auth-label">Email</label>
-              <div className="auth-input-wrap">
-                <Mail size={16} className="auth-input-icon" />
+          <form onSubmit={handleSignIn}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label className="text-muted text-small text-mono" style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.72rem', fontWeight: 700 }}>
+                EMAIL ADDRESS
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="email"
                   placeholder="you@example.com"
@@ -120,78 +204,79 @@ export default function AuthScreen({ onAuthenticated }) {
                   onChange={e => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="auth-input"
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label">Password</label>
-              <div className="auth-input-wrap">
-                <KeyRound size={16} className="auth-input-icon" />
+            <div style={{ marginBottom: '1.35rem' }}>
+              <div className="flex-between" style={{ marginBottom: '0.35rem' }}>
+                <label className="text-muted text-small text-mono" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
+                  PASSWORD
+                </label>
+                <button
+                  type="button"
+                  onClick={() => switchView(VIEWS.RESET)}
+                  style={{ background: 'none', border: 'none', color: 'var(--amber-core)', fontSize: '0.72rem', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <KeyRound size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="password"
-                  placeholder="Account password"
+                  placeholder="••••••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="auth-input"
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="auth-btn-primary"
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '0.85rem' }}
               disabled={loading}
             >
               {loading ? (
-                <RefreshCw size={16} className="spin" />
+                <><RefreshCw size={16} className="spin" /> Signing in…</>
               ) : (
-                <ArrowRight size={16} />
+                <><ArrowRight size={16} /> Sign In</>
               )}
-              {loading ? 'Signing in…' : 'Sign In'}
             </button>
-
-            <div className="auth-links">
-              <button type="button" className="auth-link" onClick={() => switchView(VIEWS.RESET)}>
-                Forgot password?
-              </button>
-              <span className="auth-link-sep">·</span>
-              <button type="button" className="auth-link" onClick={() => switchView(VIEWS.SIGNUP)}>
-                Create account
-              </button>
-            </div>
           </form>
         )}
 
-        {/* Sign Up Form */}
+        {/* SIGN UP */}
         {view === VIEWS.SIGNUP && (
-          <form onSubmit={handleSignUp} className="auth-form">
-            <h2 className="auth-form-title">Create account</h2>
-
-            {error && <div className="auth-error">{error}</div>}
-
-            <div className="auth-field">
-              <label className="auth-label">Display name <span className="auth-optional">(optional)</span></label>
-              <div className="auth-input-wrap">
-                <User size={16} className="auth-input-icon" />
+          <form onSubmit={handleSignUp}>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <label className="text-muted text-small text-mono" style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.72rem', fontWeight: 700 }}>
+                YOUR NAME (OPTIONAL)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <User size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="text"
-                  placeholder="Your name"
+                  placeholder="e.g. John Doe"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   autoComplete="name"
-                  className="auth-input"
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label">Email</label>
-              <div className="auth-input-wrap">
-                <Mail size={16} className="auth-input-icon" />
+            <div style={{ marginBottom: '0.85rem' }}>
+              <label className="text-muted text-small text-mono" style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.72rem', fontWeight: 700 }}>
+                EMAIL ADDRESS
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="email"
                   placeholder="you@example.com"
@@ -199,103 +284,96 @@ export default function AuthScreen({ onAuthenticated }) {
                   onChange={e => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="auth-input"
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label">Password</label>
-              <div className="auth-input-wrap">
-                <KeyRound size={16} className="auth-input-icon" />
+            <div style={{ marginBottom: '1.35rem' }}>
+              <label className="text-muted text-small text-mono" style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.72rem', fontWeight: 700 }}>
+                PASSWORD (MIN 6 CHARS)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <KeyRound size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="password"
-                  placeholder="Min 6 characters"
+                  placeholder="Create password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  className="auth-input"
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
-            {/* Zero-knowledge notice */}
-            <div className="auth-notice">
-              <ShieldCheck size={14} color="var(--success-color)" />
-              <p>
-                Your account password lets you log in.<br />
-                You'll set a separate <strong>vault master password</strong> next —
-                that's what encrypts your secrets. We never see it.
-              </p>
-            </div>
-
             <button
               type="submit"
-              className="auth-btn-primary"
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '0.85rem' }}
               disabled={loading}
             >
-              {loading ? <RefreshCw size={16} className="spin" /> : <ArrowRight size={16} />}
-              {loading ? 'Creating account…' : 'Create Account'}
+              {loading ? (
+                <><RefreshCw size={16} className="spin" /> Creating account…</>
+              ) : (
+                <><ArrowRight size={16} /> Create Account</>
+              )}
             </button>
-
-            <div className="auth-links">
-              <button type="button" className="auth-link" onClick={() => switchView(VIEWS.SIGNIN)}>
-                Already have an account? Sign in
-              </button>
-            </div>
           </form>
         )}
 
-        {/* Password Reset Form */}
+        {/* RESET */}
         {view === VIEWS.RESET && (
-          <form onSubmit={handleReset} className="auth-form">
-            <h2 className="auth-form-title">Reset password</h2>
-
-            {error && <div className="auth-error">{error}</div>}
-
+          <form onSubmit={handleReset}>
             {resetSent ? (
-              <div className="auth-success">
-                ✅ Reset email sent to <strong>{email}</strong>.<br />
-                Check your inbox and follow the link.
+              <div className="recessed-tray" style={{ padding: '1rem', marginBottom: '1.25rem', color: '#86efac', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                <CheckCircle2 size={18} style={{ marginBottom: '0.35rem', display: 'block' }} />
+                Password reset link sent to <strong>{email}</strong>. Please check your inbox.
               </div>
             ) : (
               <>
-                <p className="auth-reset-note">
-                  Enter your account email and we'll send a reset link.<br />
-                  <strong>Note:</strong> This only resets your account login — your vault master
-                  password is separate and cannot be recovered.
+                <p className="text-muted text-small text-mono" style={{ marginBottom: '1.25rem', lineHeight: 1.6 }}>
+                  Enter your email to receive a password reset link.<br />
+                  <strong style={{ color: '#fff' }}>Note:</strong> This resets your account login. It cannot recover your vault master password if you forget it.
                 </p>
 
-                <div className="auth-field">
-                  <label className="auth-label">Email</label>
-                  <div className="auth-input-wrap">
-                    <Mail size={16} className="auth-input-icon" />
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label className="text-muted text-small text-mono" style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.72rem', fontWeight: 700 }}>
+                    EMAIL ADDRESS
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
                     <input
                       type="email"
                       placeholder="you@example.com"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       required
-                      className="auth-input"
+                      style={{ paddingLeft: '2.5rem' }}
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="auth-btn-primary"
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '0.85rem' }}
                   disabled={loading}
                 >
                   {loading ? <RefreshCw size={16} className="spin" /> : <Mail size={16} />}
-                  {loading ? 'Sending…' : 'Send Reset Email'}
+                  {loading ? 'Sending link…' : 'Send Reset Link'}
                 </button>
               </>
             )}
 
-            <div className="auth-links">
-              <button type="button" className="auth-link" onClick={() => switchView(VIEWS.SIGNIN)}>
-                Back to sign in
+            <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => switchView(VIEWS.SIGNIN)}
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+              >
+                ← Back to Sign In
               </button>
             </div>
           </form>

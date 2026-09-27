@@ -9,20 +9,14 @@ import SecurityAbout from './components/SecurityAbout.jsx';
 import { lockVault, isUnlocked, searchVault, syncVaultToCloud } from './vault/vault.js';
 import { onAuthState, signOutUser } from './auth/auth.js';
 import {
-  Lock, Settings as SettingsIcon, Info, LogOut,
-  Wifi, WifiOff, CloudOff, Cloud, Search, X
+  Shield, Lock, Settings as SettingsIcon, Info, LogOut,
+  Search, X, Terminal, ChevronRight, HardDrive, Cpu, KeyRound
 } from 'lucide-react';
-
-// ─── Top-level app states ────────────────────────────────────────────────────
-// 'loading' → checking Firebase auth state
-// 'unauthenticated' → show AuthScreen (Firebase login/signup)
-// 'locked' → authenticated but vault not unlocked
-// 'unlocked' → fully in the app
-// ─────────────────────────────────────────────────────────────────────────────
 
 function App() {
   const [appState, setAppState] = useState('loading');
   const [firebaseUser, setFirebaseUser] = useState(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   // Navigation
   const [currentView, setCurrentView] = useState('dashboard');
@@ -36,17 +30,32 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // ── Network listener ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (isUnlocked()) {
+        syncVaultToCloud().catch(() => {});
+      }
+    };
+    const handleOffline = () => setIsOnline(false);
 
-  // ── Firebase Auth state listener ──────────────────────────────────────────
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // ── Firebase Auth listener ────────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthState((user) => {
       setFirebaseUser(user);
       if (!user) {
-        // Logged out — lock vault and go to auth
         lockVault();
         setAppState('unauthenticated');
       } else {
-        // User is authenticated — check if vault is unlocked
         if (isUnlocked()) {
           setAppState('unlocked');
         } else {
@@ -55,17 +64,6 @@ function App() {
       }
     });
     return () => unsub();
-  }, []);
-
-  // ── Online reconnect auto-sync listener ──────────────────────────────────
-  useEffect(() => {
-    const handleOnline = () => {
-      if (isUnlocked()) {
-        syncVaultToCloud().catch(() => {});
-      }
-    };
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   // ── Auto-lock timer ───────────────────────────────────────────────────────
@@ -94,7 +92,7 @@ function App() {
     };
   }, [appState]);
 
-  // ── Theme ─────────────────────────────────────────────────────────────────
+  // ── Theme listener ────────────────────────────────────────────────────────
   useEffect(() => {
     const applyTheme = () => {
       const theme = localStorage.getItem('envvault_theme') || 'system';
@@ -115,7 +113,7 @@ function App() {
     return () => window.removeEventListener('theme_changed', applyTheme);
   }, []);
 
-  // ── Keyboard shortcut: Ctrl+K / Cmd+K for search ─────────────────────────
+  // ── Keyboard shortcut: Ctrl+K / Cmd+K ─────────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -157,7 +155,7 @@ function App() {
     setSearchResults([]);
   };
 
-  // ── Event handlers ────────────────────────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleAuthenticated = () => setAppState('locked');
 
   const handleUnlocked = () => {
@@ -176,122 +174,282 @@ function App() {
   const handleSignOut = async () => {
     lockVault();
     await signOutUser();
-    // onAuthState listener will set appState to 'unauthenticated'
   };
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RENDER STATES
+  // LOADING STATE
   // ─────────────────────────────────────────────────────────────────────────
-
   if (appState === 'loading') {
     return (
-      <div className="app-container center-screen">
-        <div className="auth-logo" style={{ marginBottom: '1rem' }}>
-          <Lock size={32} color="var(--accent-color)" />
+      <div className="center-screen" style={{ minHeight: '100vh', padding: '1.5rem' }}>
+        <div className="vault-door-chassis" style={{ textAlign: 'center', maxWidth: '420px', width: '100%' }}>
+          <div className="plate-screw top-left" />
+          <div className="plate-screw top-right" />
+          <div className="plate-screw bottom-left" />
+          <div className="plate-screw bottom-right" />
+
+          <div className="vault-tumbler-dial">
+            <div className="vault-tumbler-hub">
+              <KeyRound size={20} />
+            </div>
+          </div>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.4rem' }}>Opening Vault...</h2>
+          <p className="text-muted text-small text-mono">Loading encryption keys and local storage...</p>
         </div>
-        <p className="text-muted text-small">Loading…</p>
       </div>
     );
   }
 
   if (appState === 'unauthenticated') {
-    return (
-      <div className="app-container">
-        <AuthScreen onAuthenticated={handleAuthenticated} />
-      </div>
-    );
+    return <AuthScreen onAuthenticated={handleAuthenticated} />;
   }
 
   if (appState === 'locked') {
     return (
-      <div className="app-container">
-        <LockScreen onUnlocked={handleUnlocked} user={firebaseUser} onSignOut={handleSignOut} />
-      </div>
+      <LockScreen
+        onUnlocked={handleUnlocked}
+        user={firebaseUser}
+        onSignOut={handleSignOut}
+      />
     );
   }
 
-  // ── Unlocked UI ───────────────────────────────────────────────────────────
+  // ── UNLOCKED CONSOLE ──────────────────────────────────────────────────────
   return (
     <div className="app-container">
-      {/* Global Search Overlay */}
+      {/* Search Overlay (Command Bay) */}
       {searchOpen && (
-        <div className="search-overlay" onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}>
-          <div className="search-modal" onClick={e => e.stopPropagation()}>
-            <div className="search-input-wrap">
-              <Search size={18} className="search-icon" />
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(5, 7, 12, 0.85)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            paddingTop: '12vh'
+          }}
+          onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}
+        >
+          <div
+            className="metal-plate plate-with-screws"
+            style={{ width: '100%', maxWidth: '580px', padding: 0, overflow: 'hidden' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="plate-screw top-left" />
+            <div className="plate-screw top-right" />
+            <div className="plate-screw bottom-left" />
+            <div className="plate-screw bottom-right" />
+
+            <div style={{ display: 'flex', alignItems: 'center', padding: '1rem 1.25rem', gap: '0.75rem', borderBottom: '1px solid rgba(0,0,0,0.8)' }}>
+              <Search size={18} color="var(--amber-core)" />
               <input
-                className="search-input"
                 type="text"
-                placeholder="Search projects and env files…"
+                placeholder="Search projects and variables…"
                 value={searchQuery}
                 onChange={e => handleSearch(e.target.value)}
                 autoFocus
+                style={{ background: 'transparent', border: 'none', boxShadow: 'none', color: '#fff', fontSize: '1.05rem', padding: 0 }}
               />
-              <button className="search-close" onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}>
+              <button
+                className="btn btn-danger-ghost"
+                onClick={() => { setSearchOpen(false); setSearchQuery(''); setSearchResults([]); }}
+                style={{ padding: '0.25rem' }}
+              >
                 <X size={16} />
               </button>
             </div>
+
             {searchQuery && (
-              <div className="search-results">
-                {searchLoading && <div className="search-empty">Searching…</div>}
+              <div style={{ maxHeight: '360px', overflowY: 'auto', padding: '0.5rem' }}>
+                {searchLoading && <div className="text-muted text-mono text-center" style={{ padding: '2rem' }}>Searching…</div>}
                 {!searchLoading && searchResults.length === 0 && (
-                  <div className="search-empty">No results for "{searchQuery}"</div>
+                  <div className="text-muted text-mono text-center" style={{ padding: '2rem' }}>No matches found.</div>
                 )}
                 {!searchLoading && searchResults.map(r => (
-                  <button
+                  <div
                     key={r.blockId}
-                    className="search-result-item"
+                    className="card-interactive"
                     onClick={() => openSearchResult(r)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.75rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      marginBottom: '0.35rem',
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1px solid rgba(255,255,255,0.06)'
+                    }}
                   >
-                    <span className="search-result-project">{r.projectName}</span>
-                    <span className="search-result-label">{r.label}</span>
-                  </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      <span className="stamped-badge">{r.projectName}</span>
+                      <span className="text-mono" style={{ fontWeight: 600, color: '#f4f4f5' }}>{r.label}</span>
+                    </div>
+                    <span className="text-muted text-small text-mono">OPEN →</span>
+                  </div>
                 ))}
               </div>
             )}
-            <div className="search-hint">Press Esc to close · Enter to open</div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 1.25rem', background: '#080a0f', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+              <span>Press <kbd>ESC</kbd> to close</span>
+              <span><kbd>↑</kbd> <kbd>↓</kbd> navigate · <kbd>⏎</kbd> select</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* App Header */}
-      <header className="app-header flex-between">
-        <h1 className="app-title" onClick={() => setCurrentView('dashboard')}>
-          <Lock size={20} color="var(--accent-color)" /> EnvVault
-        </h1>
+      {/* Heavy Metal Top Console Bar */}
+      <header
+        className="metal-plate plate-with-screws flex-between"
+        style={{ padding: '0.9rem 1.4rem', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}
+      >
+        <div className="plate-screw top-left" />
+        <div className="plate-screw top-right" />
+        <div className="plate-screw bottom-left" />
+        <div className="plate-screw bottom-right" />
 
-        <div className="flex-gap" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-          {/* User email pill */}
-          {firebaseUser && (
-            <div className="status-badge" title={firebaseUser.email}>
-              {firebaseUser.displayName || firebaseUser.email?.split('@')[0]}
+        {/* Brand Plaque */}
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', cursor: 'pointer' }}
+          onClick={() => setCurrentView('dashboard')}
+        >
+          <div
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'linear-gradient(180deg, #303036 0%, #17171a 100%)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderBottom: '2px solid rgba(0,0,0,0.9)',
+              boxShadow: '0 3px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--amber-core)'
+            }}
+          >
+            <Shield size={20} />
+          </div>
+
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '0.04em', color: '#fff', textShadow: 'var(--text-engraved)' }}>
+                ENVVAULT
+              </span>
+              <span className="stamped-badge" style={{ fontSize: '0.62rem', padding: '0.1rem 0.4rem', color: 'var(--amber-core)', borderColor: 'rgba(245, 158, 11, 0.4)' }}>
+                SECURE
+              </span>
             </div>
-          )}
 
-          {/* Search */}
-          <button className="btn" onClick={() => setSearchOpen(true)} title="Search (Ctrl+K)">
-            <Search size={14} /> Search
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+              <span style={{ cursor: 'pointer', color: 'var(--text-secondary)' }} onClick={() => setCurrentView('dashboard')}>
+                Projects
+              </span>
+              {currentView === 'project' && (
+                <>
+                  <ChevronRight size={11} />
+                  <span style={{ color: 'var(--amber-core)', fontWeight: 600 }}>{activeProjectName}</span>
+                </>
+              )}
+              {currentView === 'env-editor' && (
+                <>
+                  <ChevronRight size={11} />
+                  <span style={{ cursor: 'pointer', color: 'var(--text-secondary)' }} onClick={() => setCurrentView('project')}>{activeProjectName}</span>
+                  <ChevronRight size={11} />
+                  <span style={{ color: 'var(--amber-core)', fontWeight: 600 }}>{activeEnvBlock?.label || 'New File'}</span>
+                </>
+              )}
+              {currentView === 'settings' && (
+                <>
+                  <ChevronRight size={11} />
+                  <span style={{ color: 'var(--amber-core)', fontWeight: 600 }}>Settings</span>
+                </>
+              )}
+              {currentView === 'about' && (
+                <>
+                  <ChevronRight size={11} />
+                  <span style={{ color: 'var(--amber-core)', fontWeight: 600 }}>Security & How It Works</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Hardware Switches & Status */}
+        <div className="flex-gap" style={{ flexWrap: 'wrap' }}>
+          {/* LED Hardware Diode Indicator */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: '#090c12',
+              padding: '0.35rem 0.75rem',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid rgba(0,0,0,0.9)',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)'
+            }}
+          >
+            <span className={`led-diode ${isOnline ? 'green' : 'amber'}`} />
+            <span className="text-mono" style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.04em', color: isOnline ? '#34d399' : '#fbbf24' }}>
+              {isOnline ? 'ONLINE' : 'OFFLINE'}
+            </span>
+          </div>
+
+          {/* Quick Search Button */}
+          <button className="btn" onClick={() => setSearchOpen(true)} title="Quick Search (Ctrl+K)">
+            <Search size={14} color="var(--amber-core)" />
+            <span>Search</span>
+            <kbd>⌘K</kbd>
           </button>
 
-          <button className="btn" onClick={() => setCurrentView('about')} title="Security & About">
+          {/* Security Schematics */}
+          <button
+            className={`btn ${currentView === 'about' ? 'btn-primary' : ''}`}
+            onClick={() => setCurrentView('about')}
+            title="Security & How It Works"
+          >
             <Info size={14} />
           </button>
 
-          <button className="btn" onClick={() => setCurrentView('settings')}>
-            <SettingsIcon size={14} /> Settings
+          {/* Settings */}
+          <button
+            className={`btn ${currentView === 'settings' ? 'btn-primary' : ''}`}
+            onClick={() => setCurrentView('settings')}
+            title="Settings"
+          >
+            <SettingsIcon size={14} />
           </button>
 
-          <button className="btn" onClick={handleLock} title="Lock vault">
-            <Lock size={14} /> Lock
+          {/* Lock Safe Button */}
+          <button
+            className="btn"
+            onClick={handleLock}
+            style={{ borderColor: 'rgba(245, 158, 11, 0.4)' }}
+            title="Lock Vault"
+          >
+            <Lock size={14} color="var(--amber-core)" />
+            <span>Lock</span>
           </button>
 
-          <button className="btn btn-danger-ghost" onClick={handleSignOut} title="Sign out of account">
+          {/* Sign Out */}
+          <button
+            className="btn btn-danger-ghost"
+            onClick={handleSignOut}
+            title="Sign Out"
+            style={{ padding: '0.55rem' }}
+          >
             <LogOut size={14} />
           </button>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Console Viewport */}
       <main style={{ flex: 1 }}>
         {currentView === 'dashboard' && (
           <Dashboard
