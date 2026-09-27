@@ -161,7 +161,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch { }
   };
 
   const handleCopyValue = async (index, val) => {
@@ -169,7 +169,7 @@ export default function EnvEditor({ projectId, projectName, initialBlock, onBack
       await navigator.clipboard.writeText(val);
       setCopiedRow(index);
       setTimeout(() => setCopiedRow(null), 2000);
-    } catch {}
+    } catch { }
   };
 
   const handleDownload = () => {

@@ -25,11 +25,17 @@ export default function Settings({ onBack, onLock, onSignOut, user }) {
   const [changingPassword, setChangingPassword] = useState(false);
   const fileInputRef = useRef(null);
 
-  const [autoLock, setAutoLock] = useState(localStorage.getItem('envvault_autolock') || '10');
+  const getAutoLockKey = () => (user?.uid ? `envvault_autolock_${user.uid}` : 'envvault_autolock');
+  const [autoLock, setAutoLock] = useState(() => {
+    return localStorage.getItem(user?.uid ? `envvault_autolock_${user.uid}` : 'envvault_autolock') ||
+           localStorage.getItem('envvault_autolock') || '10';
+  });
 
   useEffect(() => {
+    const key = getAutoLockKey();
+    localStorage.setItem(key, autoLock);
     localStorage.setItem('envvault_autolock', autoLock);
-  }, [autoLock]);
+  }, [autoLock, user?.uid]);
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });

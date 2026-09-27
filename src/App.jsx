@@ -66,31 +66,60 @@ function App() {
     return () => unsub();
   }, []);
 
-  // ── Auto-lock timer ───────────────────────────────────────────────────────
+  // ── Auto-lock timer (Touch, Mouse, Keyboard & Tab Visibility Aware) ───────
   useEffect(() => {
     let timeout;
+    let lastActivity = Date.now();
+
+    const getTimeoutMinutes = () => {
+      const userKey = firebaseUser?.uid ? `envvault_autolock_${firebaseUser.uid}` : 'envvault_autolock';
+      const setting = localStorage.getItem(userKey) || localStorage.getItem('envvault_autolock') || '10';
+      if (setting === 'never') return null;
+      const minutes = parseInt(setting, 10);
+      return isNaN(minutes) ? 10 : minutes;
+    };
+
     const resetTimer = () => {
       clearTimeout(timeout);
-      const setting = localStorage.getItem('envvault_autolock') || '10';
-      if (setting === 'never') return;
-      const minutes = parseInt(setting, 10);
-      if (!isNaN(minutes)) {
-        timeout = setTimeout(handleLock, minutes * 60 * 1000);
+      lastActivity = Date.now();
+
+      const minutes = getTimeoutMinutes();
+      if (minutes === null) return;
+
+      timeout = setTimeout(handleLock, minutes * 60 * 1000);
+    };
+
+    const handleVisibilityOrFocus = () => {
+      const minutes = getTimeoutMinutes();
+      if (minutes === null) return;
+
+      const elapsedMs = Date.now() - lastActivity;
+      if (elapsedMs >= minutes * 60 * 1000) {
+        handleLock();
+      } else {
+        clearTimeout(timeout);
+        const remainingMs = Math.max(0, minutes * 60 * 1000 - elapsedMs);
+        timeout = setTimeout(handleLock, remainingMs);
       }
     };
 
     if (appState === 'unlocked') {
-      window.addEventListener('mousemove', resetTimer);
-      window.addEventListener('keydown', resetTimer);
+      const activityEvents = ['mousemove', 'keydown', 'pointerdown', 'touchstart', 'touchmove', 'scroll'];
+      activityEvents.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+      document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.addEventListener('focus', handleVisibilityOrFocus);
+
       resetTimer();
     }
 
     return () => {
       clearTimeout(timeout);
-      window.removeEventListener('mousemove', resetTimer);
-      window.removeEventListener('keydown', resetTimer);
+      const activityEvents = ['mousemove', 'keydown', 'pointerdown', 'touchstart', 'touchmove', 'scroll'];
+      activityEvents.forEach(evt => window.removeEventListener(evt, resetTimer));
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
     };
-  }, [appState]);
+  }, [appState, firebaseUser?.uid]);
 
   // ── Permanent Theme (Dark Gunmetal Hardware Vault) ────────────────────────
   useEffect(() => {
