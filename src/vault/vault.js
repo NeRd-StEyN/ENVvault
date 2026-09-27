@@ -103,6 +103,8 @@ export async function unlockVault(password) {
   currentVaultData = vault;
 }
 
+export const TAB_ID = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+
 /**
  * Locks the vault, clearing the key and data from memory.
  */
@@ -110,7 +112,7 @@ export function lockVault(broadcast = true) {
   currentKey = null;
   currentVaultData = null;
   if (broadcast) {
-    try { tabChannel?.postMessage({ type: 'LOCK' }); } catch {}
+    try { tabChannel?.postMessage({ type: 'LOCK', tabId: TAB_ID }); } catch {}
   }
 }
 
@@ -445,7 +447,7 @@ export async function changeMasterPassword(newPassword) {
   currentVaultData = newVault;
 
   notifyVaultChange({ reason: 'password_changed' });
-  try { tabChannel?.postMessage({ type: 'PASSWORD_CHANGED' }); } catch {}
+  try { tabChannel?.postMessage({ type: 'PASSWORD_CHANGED', tabId: TAB_ID }); } catch {}
 
   // Sync the re-encrypted vault to cloud
   await syncToCloud(newVault);

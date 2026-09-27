@@ -7,9 +7,9 @@ import EnvEditor from './components/EnvEditor.jsx';
 import Settings from './components/Settings.jsx';
 import SecurityAbout from './components/SecurityAbout.jsx';
 import CliDocs from './components/CliDocs.jsx';
-import { lockVault, isUnlocked, searchVault, syncVaultToCloud, applyCloudVaultUpdate, onVaultChange } from './vault/vault.js';
+import { lockVault, isUnlocked, searchVault, syncVaultToCloud, applyCloudVaultUpdate, onVaultChange, TAB_ID } from './vault/vault.js';
 import { subscribeToVault } from './auth/cloud-sync.js';
-import { onAuthState, signOutUser } from './auth/auth.js';
+import { onAuthState, signOutUser, getCurrentUser } from './auth/auth.js';
 import {
   Shield, Lock, Settings as SettingsIcon, Info, LogOut,
   Search, X, Terminal, ChevronRight, HardDrive, Cpu, KeyRound
@@ -41,15 +41,23 @@ function App() {
 
   const handleLock = useCallback((broadcast = true) => {
     lockVault(broadcast);
-    setAppState('locked');
     setActiveProjectId(null);
     setActiveEnvBlock(null);
     setSearchOpen(false);
+    if (getCurrentUser()) {
+      setAppState('locked');
+    } else {
+      setAppState('unauthenticated');
+    }
   }, []);
 
   const handleSignOut = useCallback(async () => {
+    setActiveProjectId(null);
+    setActiveEnvBlock(null);
+    setSearchOpen(false);
+    setFirebaseUser(null);
     setAppState('unauthenticated');
-    lockVault();
+    lockVault(false);
     try {
       await signOutUser();
     } catch (err) {
@@ -80,7 +88,7 @@ function App() {
     const unsub = onAuthState((user) => {
       setFirebaseUser(user);
       if (!user) {
-        lockVault();
+        lockVault(false);
         setAppState('unauthenticated');
       } else {
         if (isUnlocked()) {
@@ -117,6 +125,11 @@ function App() {
     if (typeof BroadcastChannel !== 'undefined') {
       channel = new BroadcastChannel('envvault_sync_channel');
       channel.onmessage = (e) => {
+        // Ignore broadcasts that originated from this exact tab
+        if (e.data?.tabId === TAB_ID) return;
+        // Never lock if the user is not authenticated
+        if (!getCurrentUser()) return;
+
         if (e.data?.type === 'LOCK' || e.data?.type === 'PASSWORD_CHANGED') {
           handleLock(false);
         }
