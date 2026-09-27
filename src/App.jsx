@@ -6,6 +6,7 @@ import ProjectView from './components/ProjectView.jsx';
 import EnvEditor from './components/EnvEditor.jsx';
 import Settings from './components/Settings.jsx';
 import SecurityAbout from './components/SecurityAbout.jsx';
+import CliDocs from './components/CliDocs.jsx';
 import { lockVault, isUnlocked, searchVault, syncVaultToCloud } from './vault/vault.js';
 import { onAuthState, signOutUser } from './auth/auth.js';
 import {
@@ -394,6 +395,12 @@ function App() {
                   <span style={{ color: 'var(--amber-core)', fontWeight: 600 }}>Security & How It Works</span>
                 </>
               )}
+              {currentView === 'cli' && (
+                <>
+                  <ChevronRight size={11} />
+                  <span style={{ color: 'var(--amber-core)', fontWeight: 600 }}>CLI Commands</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -425,6 +432,16 @@ function App() {
             <Search size={14} color="var(--amber-core)" />
             <span>Search</span>
             <kbd>⌘K</kbd>
+          </button>
+
+          {/* CLI Reference */}
+          <button
+            className={`btn ${currentView === 'cli' ? 'btn-primary' : ''}`}
+            onClick={() => setCurrentView('cli')}
+            title="CLI & Terminal Commands"
+          >
+            <Terminal size={14} />
+            <span>CLI</span>
           </button>
 
           {/* Security Schematics */}
@@ -517,6 +534,10 @@ function App() {
 
         {currentView === 'about' && (
           <SecurityAbout onBack={() => setCurrentView('dashboard')} />
+        )}
+
+        {currentView === 'cli' && (
+          <CliDocs onBack={() => setCurrentView('dashboard')} />
         )}
       </main>
     </div>

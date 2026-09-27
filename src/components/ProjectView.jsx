@@ -17,7 +17,6 @@ const getEnvBadgeClass = (label) => {
 export default function ProjectView({ projectId, projectName, onBack, onSelectEnv, onNewEnv }) {
   const [envBlocks, setEnvBlocks] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [cliCopied, setCliCopied] = useState(false);
 
   useEffect(() => {
     loadEnvs();
@@ -31,12 +30,6 @@ export default function ProjectView({ projectId, projectName, onBack, onSelectEn
   const handleDelete = async () => {
     await deleteProject(projectId);
     onBack();
-  };
-
-  const copyCliCommand = () => {
-    navigator.clipboard.writeText(`npx envvault inject --project "${projectName}"`);
-    setCliCopied(true);
-    setTimeout(() => setCliCopied(false), 2000);
   };
 
   return (
@@ -67,43 +60,6 @@ export default function ProjectView({ projectId, projectName, onBack, onSelectEn
         </div>
       </div>
 
-      {/* Embedded Terminal Chassis */}
-      <div className="recessed-tray" style={{ marginBottom: '2rem', overflow: 'hidden' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.55rem 1rem',
-            background: 'linear-gradient(180deg, #1f1f24 0%, #131316 100%)',
-            borderBottom: '1px solid rgba(0,0,0,0.9)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="led-diode amber" />
-            <span className="text-mono" style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-              RUN IN YOUR TERMINAL (CLI)
-            </span>
-          </div>
-          <button
-            className="btn"
-            onClick={copyCliCommand}
-            style={{ padding: '0.2rem 0.55rem', fontSize: '0.7rem' }}
-          >
-            {cliCopied ? <Check size={12} color="#34d399" /> : <Copy size={12} />}
-            {cliCopied ? 'Command Copied' : 'Copy Command'}
-          </button>
-        </div>
-        <div style={{ padding: '0.85rem 1.15rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <div className="text-mono" style={{ fontSize: '0.85rem' }}>
-            <span style={{ color: 'var(--text-tertiary)' }}>$ </span>
-            <span style={{ color: '#f4f4f5' }}>npx envvault inject </span>
-            <span style={{ color: 'var(--amber-core)' }}>--project "{projectName}" </span>
-            <span style={{ color: '#a855f7' }}>-- npm run start</span>
-          </div>
-          <kbd style={{ fontSize: '0.65rem' }}>TERMINAL</kbd>
-        </div>
-      </div>
 
       {/* Environments Modules */}
       <div>
