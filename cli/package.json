@@ -1,6 +1,6 @@
 {
   "name": "@nerdsteyn/envvault-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Zero-knowledge CLI for pulling environment variables securely.",
   "main": "index.js",
   "bin": {

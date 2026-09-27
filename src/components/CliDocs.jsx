@@ -4,37 +4,20 @@ import {
   Key, Shield, Trash2, Cpu, HardDrive, Sparkles
 } from 'lucide-react';
 
-const CLI_COMMANDS = [
-  {
-    category: 'INSTALLATION',
-    title: 'Install or Run via NPM / NPX',
-    description: 'You can install the CLI globally or run it on-demand with npx without installing anything.',
-    commands: [
-      {
-        label: 'Run on-demand with npx (Recommended)',
-        cmd: 'npx @nerdsteyn/envvault-cli --help',
-        desc: 'Runs the latest CLI without installing globally.'
-      },
-      {
-        label: 'Install globally via npm',
-        cmd: 'npm install -g @nerdsteyn/envvault-cli',
-        desc: 'Installs the envvault command permanently on your laptop.'
-      }
-    ]
-  },
+const RAW_COMMANDS = [
   {
     category: 'AUTHENTICATION',
     title: 'Login & Session Management',
-    description: 'Authenticate with your EnvVault account and Master Password to unlock encrypted vaults from the command line.',
+    description: 'Authenticate with your account and Master Password. You only need to login once.',
     commands: [
       {
         label: 'Login to EnvVault',
-        cmd: 'npx @nerdsteyn/envvault-cli login',
-        desc: 'Prompts for your account email, password, and master password. Saves an encrypted session.'
+        cmd: 'login',
+        desc: 'Prompts for your email, account password, and master password. Saves an encrypted session.'
       },
       {
         label: 'Log out & Clear Session',
-        cmd: 'npx @nerdsteyn/envvault-cli logout',
+        cmd: 'logout',
         desc: 'Removes all saved credentials and session tokens from your device.'
       }
     ]
@@ -42,21 +25,21 @@ const CLI_COMMANDS = [
   {
     category: 'PULL SECRETS (DOWNLOAD)',
     title: 'Pull Encrypted Secrets to Local .env',
-    description: 'Decrypts environment variables from your cloud vault and writes them directly into a local .env file.',
+    description: 'Decrypts environment variables from your cloud vault and writes them directly into a local .env file on your computer.',
     commands: [
       {
         label: 'Pull into a local .env file',
-        cmd: 'npx @nerdsteyn/envvault-cli pull "my-project" -o .env',
+        cmd: 'pull "my-project" -o .env',
         desc: 'Fetches the project’s default environment and saves it as .env in your current folder.'
       },
       {
         label: 'Pull a specific environment (e.g. Production)',
-        cmd: 'npx @nerdsteyn/envvault-cli pull "my-project" .env.production -o .env.production',
+        cmd: 'pull "my-project" .env.production -o .env.production',
         desc: 'Fetches .env.production and writes it to .env.production.'
       },
       {
         label: 'Print secrets to terminal output (stdout)',
-        cmd: 'npx @nerdsteyn/envvault-cli pull "my-project" .env.production',
+        cmd: 'pull "my-project" .env.production',
         desc: 'Prints decrypted variables directly to your terminal without creating a file.'
       }
     ]
@@ -64,16 +47,16 @@ const CLI_COMMANDS = [
   {
     category: 'PUSH SECRETS (UPLOAD)',
     title: 'Push Local .env to Vault',
-    description: 'Upload and encrypt a local .env file to your vault. Automatically creates the project and environment if they do not exist.',
+    description: 'Upload and encrypt a local .env file to your cloud vault. Creates the project and environment automatically if they do not exist.',
     commands: [
       {
         label: 'Push local .env file to vault',
-        cmd: 'npx @nerdsteyn/envvault-cli push "my-project" .env.production -i .env',
-        desc: 'Reads your local .env file, encrypts it on your laptop, and syncs it to the cloud.'
+        cmd: 'push "my-project" .env.production -i .env',
+        desc: 'Reads your local .env file, encrypts it on your laptop, and syncs it to your cloud vault.'
       },
       {
         label: 'Push staging environment',
-        cmd: 'npx @nerdsteyn/envvault-cli push "my-project" .env.staging -i .env.staging',
+        cmd: 'push "my-project" .env.staging -i .env.staging',
         desc: 'Uploads .env.staging to your project’s staging environment.'
       }
     ]
@@ -85,12 +68,12 @@ const CLI_COMMANDS = [
     commands: [
       {
         label: 'Delete an entire project',
-        cmd: 'npx @nerdsteyn/envvault-cli delete-project "my-project"',
+        cmd: 'delete-project "my-project"',
         desc: 'Prompts for confirmation and permanently deletes the project (alias: rm-p).'
       },
       {
         label: 'Delete a single environment file',
-        cmd: 'npx @nerdsteyn/envvault-cli delete-env "my-project" .env.staging',
+        cmd: 'delete-env "my-project" .env.staging',
         desc: 'Deletes only the specified environment file from the project (alias: rm-e).'
       }
     ]
@@ -99,6 +82,9 @@ const CLI_COMMANDS = [
 
 export default function CliDocs({ onBack }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [useNpx, setUseNpx] = useState(false);
+
+  const prefix = useNpx ? 'npx @nerdsteyn/envvault-cli' : 'envvault';
 
   const copyToClipboard = (text, key) => {
     navigator.clipboard.writeText(text);
@@ -121,66 +107,95 @@ export default function CliDocs({ onBack }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <h2 style={{ margin: 0, fontSize: '1.65rem' }}>CLI & Terminal Commands</h2>
             <span className="stamped-badge">
-              <span className="led-diode amber" style={{ width: '7px', height: '7px' }} />
-              @nerdsteyn/envvault-cli
+              <span className="led-diode green" style={{ width: '7px', height: '7px' }} />
+              SHORT COMMAND: envvault
             </span>
           </div>
           <p className="text-muted text-small text-mono" style={{ marginTop: '0.3rem' }}>
-            Pull, push, and automate your encrypted secrets directly from your terminal or CI/CD pipelines.
+            Once installed, you only ever need to type the short command <strong style={{ color: 'var(--amber-core)' }}>envvault</strong>!
           </p>
+        </div>
+
+        {/* Command Format Mode Switcher */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#090c12',
+            padding: '0.35rem',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid rgba(0,0,0,0.9)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)'
+          }}
+        >
+          <button
+            className={`btn ${!useNpx ? 'btn-primary' : ''}`}
+            onClick={() => setUseNpx(false)}
+            style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', margin: 0 }}
+          >
+            Short: envvault
+          </button>
+          <button
+            className={`btn ${useNpx ? 'btn-primary' : ''}`}
+            onClick={() => setUseNpx(true)}
+            style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', margin: 0 }}
+          >
+            NPX (No Install)
+          </button>
         </div>
       </div>
 
-      {/* Overview Capsule */}
-      <div className="metal-plate plate-with-screws" style={{ marginBottom: '1.5rem' }}>
+      {/* Installation Hero Card */}
+      <div className="metal-plate plate-with-screws" style={{ marginBottom: '1.5rem', borderColor: 'var(--amber-core)', boxShadow: '0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(245, 158, 11, 0.2)' }}>
         <div className="plate-screw top-left" />
         <div className="plate-screw top-right" />
         <div className="plate-screw bottom-left" />
         <div className="plate-screw bottom-right" />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-          <Terminal size={18} color="var(--amber-core)" />
-          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>HOW THE CLI WORKS</h3>
+        <div className="flex-between" style={{ marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <Terminal size={20} color="var(--amber-core)" />
+            <h3 style={{ margin: 0, fontSize: '1.15rem' }}>STEP 1: INSTALL ONCE (GLOBAL)</h3>
+          </div>
+          <span className="stamped-badge" style={{ color: 'var(--amber-core)', borderColor: 'rgba(245, 158, 11, 0.4)' }}>
+            RUN ONCE ONLY
+          </span>
         </div>
-        <p className="text-muted text-small text-mono" style={{ lineHeight: '1.6', marginBottom: '1rem' }}>
-          The EnvVault CLI brings true zero-knowledge encryption to your terminal. When you pull secrets, 
-          the encrypted vault data is downloaded from the cloud and <strong>decrypted locally on your computer using your master password</strong>. 
-          Plaintext secrets are never stored on any server.
+
+        <p className="text-muted text-small text-mono" style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
+          Run this single install command in your terminal. After this, you <strong>never have to write the package name again</strong>—just type <strong style={{ color: '#fff' }}>envvault</strong>!
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-          <div className="recessed-tray" style={{ padding: '0.85rem' }}>
-            <div className="text-mono" style={{ color: 'var(--amber-core)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem' }}>
-              ✓ CI/CD & Deployments
-            </div>
-            <p className="text-muted text-mono" style={{ fontSize: '0.7rem', margin: 0 }}>
-              Automate secret injection in GitHub Actions, Docker, or staging servers.
-            </p>
-          </div>
+        <div
+          className="recessed-tray"
+          style={{
+            padding: '0.85rem 1.15rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap'
+          }}
+        >
+          <code className="text-mono" style={{ fontSize: '0.95rem', color: '#fff' }}>
+            <span style={{ color: 'var(--text-tertiary)' }}>$ </span>
+            npm install -g <span style={{ color: 'var(--amber-core)', fontWeight: 700 }}>@nerdsteyn/envvault-cli</span>
+          </code>
 
-          <div className="recessed-tray" style={{ padding: '0.85rem' }}>
-            <div className="text-mono" style={{ color: '#34d399', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem' }}>
-              ✓ Local Development
-            </div>
-            <p className="text-muted text-mono" style={{ fontSize: '0.7rem', margin: 0 }}>
-              Pull the latest development team secrets into your local .env with one command.
-            </p>
-          </div>
-
-          <div className="recessed-tray" style={{ padding: '0.85rem' }}>
-            <div className="text-mono" style={{ color: '#60a5fa', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem' }}>
-              ✓ Zero Plaintext in Cloud
-            </div>
-            <p className="text-muted text-mono" style={{ fontSize: '0.7rem', margin: 0 }}>
-              Secrets are encrypted before upload and decrypted only inside your local shell.
-            </p>
-          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => copyToClipboard('npm install -g @nerdsteyn/envvault-cli', 'global-install')}
+            style={{ padding: '0.35rem 0.85rem', fontSize: '0.78rem' }}
+          >
+            {copiedIndex === 'global-install' ? <Check size={14} color="#34d399" /> : <Copy size={14} />}
+            {copiedIndex === 'global-install' ? 'Copied to Clipboard' : 'Copy Install Command'}
+          </button>
         </div>
       </div>
 
       {/* Command Sections */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {CLI_COMMANDS.map((section, sIdx) => (
+        {RAW_COMMANDS.map((section, sIdx) => (
           <div key={sIdx} className="metal-plate plate-with-screws">
             <div className="plate-screw top-left" />
             <div className="plate-screw top-right" />
@@ -200,6 +215,7 @@ export default function CliDocs({ onBack }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {section.commands.map((c, cIdx) => {
+                const fullCommand = `${prefix} ${c.cmd}`;
                 const itemKey = `${sIdx}-${cIdx}`;
                 const isCopied = copiedIndex === itemKey;
 
@@ -211,7 +227,7 @@ export default function CliDocs({ onBack }) {
                       </span>
                       <button
                         className="btn"
-                        onClick={() => copyToClipboard(c.cmd, itemKey)}
+                        onClick={() => copyToClipboard(fullCommand, itemKey)}
                         style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
                       >
                         {isCopied ? <Check size={12} color="#34d399" /> : <Copy size={12} />}
@@ -233,9 +249,9 @@ export default function CliDocs({ onBack }) {
                         overflowX: 'auto'
                       }}
                     >
-                      <code className="text-mono" style={{ fontSize: '0.82rem', color: 'var(--amber-core)', whiteSpace: 'nowrap' }}>
+                      <code className="text-mono" style={{ fontSize: '0.85rem', color: 'var(--amber-core)', whiteSpace: 'nowrap' }}>
                         <span style={{ color: 'var(--text-tertiary)' }}>$ </span>
-                        {c.cmd}
+                        <strong style={{ color: '#fff' }}>{prefix}</strong> {c.cmd}
                       </code>
                     </div>
 
