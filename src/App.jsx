@@ -502,7 +502,7 @@ function App() {
           <button
             className="btn"
             onClick={handleLock}
-            style={{ borderColor: 'rgba(245, 158, 11, 0.4)' }}
+            style={{ border: '1px solid rgba(245, 158, 11, 0.65)' }}
             title="Lock Vault"
           >
             <Lock size={14} color="var(--amber-core)" />
